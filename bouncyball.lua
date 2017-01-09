@@ -1,18 +1,19 @@
 require("lovepunk.entity")
-BouncyBall = Entity.new(0, 0, 14, 14)
+require("holdable")
+BouncyBall = Holdable.new(0, 0, 14, 14)
 BouncyBall.__index = BouncyBall
 
 
-function BouncyBall.new(x, y)
+function BouncyBall.new(x, y, player)
 	local self = setmetatable({}, BouncyBall)
 	self.x = x
 	self.y = y
+	self.player = player
 	self.originX = self.width/2
 	self.originY = self.height/2
 	self.v.x = -2
-	self.type = "ball"
 	self.image = love.graphics.newImage("assets/img/bouncyball.png")
-	self.layer = 11
+	self.layer = -5
 	self.gravity = 0.1
 	self.friction = 0.99
 	self.rotation = 0
@@ -24,6 +25,7 @@ function BouncyBall:update()
 	self.v.x = self.v.x * self.friction
 	self.rotation = self.rotation + toRadians(self.v.x*2)
 	self:move()
+	Holdable.update(self)
 end
 function BouncyBall:move()
 	local _,_,cols = self.scene.bumpWorld:move(self, self.x + self.v.x, self.y + self.v.y, entityFilter)
@@ -31,6 +33,11 @@ function BouncyBall:move()
 		if (c.other.type == "level") then
 			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)*1.9
 			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)*1.9
+			
+			if (self.beingCarried and self.player.facing == F_DOWN) then
+				self.player.v.x = self.player.v.x + c.normal.x*5.9
+				self.player.v.y = self.player.v.y + c.normal.y*5.9
+			end
 		end
 	end
 	self.x = self.x + self.v.x

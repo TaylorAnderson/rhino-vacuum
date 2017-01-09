@@ -40,7 +40,7 @@ function GameScene:load()
 			end
 
 			if (object.name == "bouncyball") then
-				self:add(BouncyBall.new(object.x + mapx, object.y + mapy))
+				self:add(BouncyBall.new(object.x + mapx, object.y + mapy, self.player))
 			end
 		end
 		self.camera.x = -(self.player.x - halfWidth + 40)

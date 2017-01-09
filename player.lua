@@ -5,17 +5,24 @@ require("gust")
 Player = Entity.new(0, 0, gs, gs)
 Player.__index = Player
 
-local S_INAIR = "inair"
-local S_ONGROUND = "onground"
-local S_NONE = "none"
-local VS_SUCKING = "sucking"
-local VS_BLOWING = "blowing"
-local VS_NONE = "none"
+S_INAIR = "inair"
+S_ONGROUND = "onground"
+S_NONE = "none"
+
+VS_SUCKING = "sucking"
+VS_BLOWING = "blowing"
+VS_NONE = "none"
+
+F_LEFT = "left"
+F_RIGHT = "right"
+F_DOWN = "down"
+F_UP = "up"
 
 function Player.new(x, y)
 	local self = setmetatable({}, Player)
 	self.x = x
 	self.y = y
+	self.facing = F_RIGHT
 	self.keys= {
 		left = moveLeft,
 		right = moveRight,
@@ -48,13 +55,13 @@ function Player.new(x, y)
 	self.collisionMap = {["level"]="slide", ["enemy"]="cross"}
 	self.originY = 1
 
-	self.carryingOffset = self.width/1.5
 	self.layer = -3
 	self.flipped = false
 	self.gustCooldown = 0
 	self.modeSwitchCooldown = 0
-	return self
 
+	self.carrying = nil
+	return self
 end
 
 function Player:update(dt)
@@ -65,6 +72,33 @@ function Player:update(dt)
 	self:updateAnimation(dt)
 	self.modeSwitchCooldown = self.modeSwitchCooldown - 1
 	self.gustCooldown = self.gustCooldown - 1
+	print (self.facing)
+	if self.currentAnim == self.upRunAnim then self.facing = F_UP end
+	if self.currentAnim == self.downRunAnim then self.facing = F_DOWN end
+	if self.currentAnim == self.sideRunAnim then
+		if (self.flipped) then self.facing = F_LEFT
+		else self.facing = F_RIGHT end
+	end
+
+	if self.carrying then
+		local cOffset = {x=0, y=3}
+		if (self.facing == F_LEFT) then cOffset.x = -self.width/2-6 end
+		if (self.facing == F_RIGHT) then cOffset.x = self.width/2+6 end
+		if (self.facing == F_DOWN) then
+			cOffset.y = self.height/2+6
+			if (self.flipped) then cOffset.x = -3
+			else cOffset.x = 3 end
+		end
+		if (self.facing == F_UP) then
+			cOffset.y = -self.height/2-5
+			if (self.flipped) then cOffset.x = -6
+			else cOffset.x = 6 end
+		end
+		self.carrying.x = self.x + cOffset.x
+		self.carrying.y = self.y + cOffset.y
+		self.carrying.v.x = 0
+		self.carrying.v.y = 0
+	end
 end
 
 function Player:move()
@@ -74,14 +108,15 @@ function Player:move()
 			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)
 			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)
 		end
-		if (c.other.type == "carryable") and not self.carrying and not c.other.thrown then
+		if (c.other.type == "carryable") and not self.carrying then
 			self.carrying = c.other
 			c.other.beingCarried = true
-			c.other.collidable = false
 		end
 	end
 	self.x = self.x + self.v.x
 	self.y = self.y + self.v.y
+
+
 	self.scene.bumpWorld:update(self, self.x, self.y)
 end
 
@@ -172,8 +207,12 @@ end
 function Player:updateAnimation(dt)
 	self.currentAnim:update(dt)
 	if (self.vacuumState == VS_SUCKING) then self.suckAnim:update(dt) end
-	if pressing("up") then self.currentAnim = self.upRunAnim
-	elseif pressing("down") then self.currentAnim = self.downRunAnim
+
+
+	if pressing("up") then
+		self.currentAnim = self.upRunAnim
+	elseif pressing("down") then
+		self.currentAnim = self.downRunAnim
 	else self.currentAnim = self.sideRunAnim end
 	if pressing("left") or pressing("right") then
 		self.currentAnim:resume()
@@ -186,6 +225,7 @@ function Player:updateAnimation(dt)
 
 	if (pressing("right")) then
 		self:flip(false)
+
 	end
 	if pressing("left") then self:flip(true) end
 end
@@ -214,12 +254,10 @@ function Player:flip(reverse)
 	if (reverse) then
 		self.originX = self.width
 		self.scaleX = -1
-		self.carryingOffset = -self.width/1.5
 		self.flipped = true
 	else
 		self.originX = 0
 		self.scaleX = 1
 		self.flipped = false
-		self.carryingOffset = self.width/1.5
 	end
 end
