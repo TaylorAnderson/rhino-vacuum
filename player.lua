@@ -23,11 +23,9 @@ function Player.new(x, y)
 	}
 	self.vacuumState = VS_NONE
 	self.friction = 0.6
-	self.grappleFriction = 0.999
 	self.normalFriction = 0.6
 	self.gravity = 0.2
 	self.normalGravity = 0.2
-	self.wallGravity = 0.05
 	self.speed = gs/1.7
 	self.accel = self.speed / 10
 	self.v = {x=0, y=0}
@@ -49,9 +47,6 @@ function Player.new(x, y)
 
 	self.collisionMap = {["level"]="slide", ["enemy"]="cross"}
 	self.originY = 1
-	self.grappleSet = false;
-	self.carrying = nil
-	self.diveTarget = nil
 
 	self.carryingOffset = self.width/1.5
 	self.layer = -3

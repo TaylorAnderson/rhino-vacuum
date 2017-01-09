@@ -8,7 +8,7 @@ return {
   height = 12,
   tilewidth = 16,
   tileheight = 16,
-  nextobjectid = 4,
+  nextobjectid = 5,
   properties = {},
   tilesets = {
     {
@@ -66,6 +66,19 @@ return {
           y = 127.5,
           width = 45,
           height = 34.5,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 4,
+          name = "bouncyball",
+          type = "",
+          shape = "rectangle",
+          x = 211.25,
+          y = 125,
+          width = 0,
+          height = 0,
           rotation = 0,
           visible = true,
           properties = {}
