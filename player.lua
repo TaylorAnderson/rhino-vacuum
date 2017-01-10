@@ -65,6 +65,7 @@ function Player.new(x, y)
 end
 
 function Player:update(dt)
+	print (self.v.y)
 	self.grounded = self:collide("level", self.x, self.y + 1) ~= nil
 	self:checkState()
 	self:stateUpdate()
@@ -72,7 +73,6 @@ function Player:update(dt)
 	self:updateAnimation(dt)
 	self.modeSwitchCooldown = self.modeSwitchCooldown - 1
 	self.gustCooldown = self.gustCooldown - 1
-	print (self.facing)
 	if self.currentAnim == self.upRunAnim then self.facing = F_UP end
 	if self.currentAnim == self.downRunAnim then self.facing = F_DOWN end
 	if self.currentAnim == self.sideRunAnim then

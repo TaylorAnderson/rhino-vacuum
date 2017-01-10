@@ -24,6 +24,13 @@ function BouncyBall:update()
 	self.v.y = self.v.y + self.gravity
 	self.v.x = self.v.x * self.friction
 	self.rotation = self.rotation + toRadians(self.v.x*2)
+	if (self.beingCarried) then
+		self.height = 6
+		self.originY = 3
+	else
+		self.height = 14
+		self.originY = 7
+	end
 	self:move()
 	Holdable.update(self)
 end
@@ -31,12 +38,14 @@ function BouncyBall:move()
 	local _,_,cols = self.scene.bumpWorld:move(self, self.x + self.v.x, self.y + self.v.y, entityFilter)
 	for _, c in pairs(cols) do
 		if (c.other.type == "level") then
-			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)*1.9
-			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)*1.9
-			
-			if (self.beingCarried and self.player.facing == F_DOWN) then
-				self.player.v.x = self.player.v.x + c.normal.x*5.9
-				self.player.v.y = self.player.v.y + c.normal.y*5.9
+
+
+			if (self.beingCarried) then
+				self.player.v.x = c.normal.x*5.9
+				self.player.v.y =self.player.v.y + c.normal.y*1.9
+			else
+				self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)*1.9
+				self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)*1.9
 			end
 		end
 	end
