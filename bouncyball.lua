@@ -8,6 +8,7 @@ function BouncyBall.new(x, y, player)
 	local self = setmetatable({}, BouncyBall)
 	self.x = x
 	self.y = y
+	self.collisionLock = false
 	self.player = player
 	self.originX = self.width/2
 	self.originY = self.height/2
@@ -17,38 +18,31 @@ function BouncyBall.new(x, y, player)
 	self.gravity = 0.1
 	self.friction = 0.99
 	self.rotation = 0
-	self.collisionMap = {["level"]="bounce"}
 	return self
 end
 function BouncyBall:update()
 	self.v.y = self.v.y + self.gravity
 	self.v.x = self.v.x * self.friction
 	self.rotation = self.rotation + toRadians(self.v.x*2)
-	if (self.beingCarried) then
-		self.height = 6
-		self.originY = 3
-	else
-		self.height = 14
-		self.originY = 7
-	end
 	self:move()
 	Holdable.update(self)
 end
 function BouncyBall:move()
 	local _,_,cols = self.scene.bumpWorld:move(self, self.x + self.v.x, self.y + self.v.y, entityFilter)
+	local len = 0
 	for _, c in pairs(cols) do
-		if (c.other.type == "level") then
-
-
+		len = len+1
+		if (c.other.type == "level" and not self.collisionLock) then
+			self.player.v.x = self.player.v.x + c.normal.x*math.abs(self.player.v.x)*8
+			self.player.v.y = self.player.v.y + c.normal.y*math.abs(self.player.v.y)*2.05
+			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)*1.4
+			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)*1.4
 			if (self.beingCarried) then
-				self.player.v.x = c.normal.x*5.9
-				self.player.v.y =self.player.v.y + c.normal.y*1.9
-			else
-				self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)*1.9
-				self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)*1.9
+				self.collisionLock = true
 			end
 		end
 	end
+	if (len == 1) then self.collisionLock = false end
 	self.x = self.x + self.v.x
 	self.y = self.y + self.v.y
 	self.scene.bumpWorld:update(self, self.x, self.y)

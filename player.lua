@@ -46,26 +46,21 @@ function Player.new(x, y)
 	self.upRunAnim = anim8.newAnimation(grid('1-4', 2), 0.1)
 	self.downRunAnim = anim8.newAnimation(grid('1-4', 3), 0.1)
 	self.currentAnim = self.sideRunAnim
-
-
 	self.suckImg = love.graphics.newImage("assets/img/suck.png")
 	local grid = anim8.newGrid(16, 16, self.suckImg:getWidth(), self.suckImg:getHeight())
 	self.suckAnim = anim8.newAnimation(grid('1-4', 1), 0.05)
 
 	self.collisionMap = {["level"]="slide", ["enemy"]="cross"}
-	self.originY = 1
 
 	self.layer = -3
 	self.flipped = false
 	self.gustCooldown = 0
 	self.modeSwitchCooldown = 0
-
 	self.carrying = nil
 	return self
 end
 
 function Player:update(dt)
-	print (self.v.y)
 	self.grounded = self:collide("level", self.x, self.y + 1) ~= nil
 	self:checkState()
 	self:stateUpdate()
@@ -81,11 +76,11 @@ function Player:update(dt)
 	end
 
 	if self.carrying then
-		local cOffset = {x=0, y=3}
+		local cOffset = {x=0, y=0}
 		if (self.facing == F_LEFT) then cOffset.x = -self.width/2-6 end
 		if (self.facing == F_RIGHT) then cOffset.x = self.width/2+6 end
 		if (self.facing == F_DOWN) then
-			cOffset.y = self.height/2+6
+			cOffset.y = self.height/2+5
 			if (self.flipped) then cOffset.x = -3
 			else cOffset.x = 3 end
 		end
@@ -147,7 +142,9 @@ function Player:draw()
 			if (self.flipped) then animX = self.x+6 end
 			animRotation = 90
 		end
-		self.suckAnim:draw(self.suckImg, animX, animY, toRadians(animRotation), 1, 1, 6, 8)
+		if not self.carrying then
+			self.suckAnim:draw(self.suckImg, animX, animY, toRadians(animRotation), 1, 1, 6, 8)
+		end
 	end
 end
 
@@ -191,7 +188,14 @@ function Player:stateUpdate()
 
 			self.v.x = self.v.x - gustV.x*0.7
 			self.v.y = self.v.y - gustV.y*0.7
-			self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
+			if (self.carrying) then
+				self.carrying.v.x = gustV.x * 2
+				self.carrying.v.y = gustV.y *2
+				self.carrying = nil
+				self.beingCarried = false
+			else
+				self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
+			end
 			self.gustCooldown = 60
 		end
 	end
@@ -220,12 +224,10 @@ function Player:updateAnimation(dt)
 		self.currentAnim:gotoFrame(1)
 	end
 
-	if not self.grounded then self.currentAnim:gotoFrame(2)
-	end
+	if not self.grounded then self.currentAnim:gotoFrame(2) end
 
 	if (pressing("right")) then
 		self:flip(false)
-
 	end
 	if pressing("left") then self:flip(true) end
 end
@@ -240,14 +242,6 @@ end
 
 function Player:jump()
 	self.v.y = -self.jumpSpeed
-	if (self.state == S_WALLCLIMBING) then
-		if pressing("left") then
-			self.v.x = 10
-		end
-		if pressing("right") then
-			self.v.x = -10
-		end
-	end
 end
 
 function Player:flip(reverse)
