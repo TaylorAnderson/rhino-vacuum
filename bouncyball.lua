@@ -12,7 +12,7 @@ function BouncyBall.new(x, y, player)
 	self.player = player
 	self.originX = self.width/2
 	self.originY = self.height/2
-	self.v.x = -2
+	self.v.x = -1
 	self.image = love.graphics.newImage("assets/img/bouncyball.png")
 	self.layer = -5
 	self.gravity = 0.1
@@ -33,13 +33,13 @@ function BouncyBall:move()
 	for _, c in pairs(cols) do
 		len = len+1
 		if (c.other.type == "level" and not self.collisionLock) then
-			self.player.v.x = self.player.v.x + c.normal.x*math.abs(self.player.v.x)*8
-			self.player.v.y = self.player.v.y + c.normal.y*math.abs(self.player.v.y)*2.05
-			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)*1.4
-			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)*1.4
 			if (self.beingCarried) then
+				self.player.v.x = self.player.v.x + c.normal.x*math.abs(self.player.v.x)*8
+				self.player.v.y = self.player.v.y + c.normal.y*math.abs(self.player.v.y)*2.05
 				self.collisionLock = true
 			end
+			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)*1.3
+			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)*1.3
 		end
 	end
 	if (len == 1) then self.collisionLock = false end

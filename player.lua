@@ -57,6 +57,8 @@ function Player.new(x, y)
 	self.gustCooldown = 0
 	self.modeSwitchCooldown = 0
 	self.carrying = nil
+
+	self.dirtCount = 0
 	return self
 end
 
@@ -94,6 +96,16 @@ function Player:update(dt)
 		self.carrying.v.x = 0
 		self.carrying.v.y = 0
 	end
+	if (self.carrying and self.carrying.kind == "dirt") then
+		self.scene:remove(self.carrying)
+		self:drop()
+		self.dirtCount = self.dirtCount + 1
+		if (self.dirtCount > 30) then
+			local dustball = DustBall.new()
+			self.scene:add(dustball)
+			self.carrying = dustball
+		end
+	end
 end
 
 function Player:move()
@@ -103,7 +115,7 @@ function Player:move()
 			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)
 			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)
 		end
-		if (c.other.type == "carryable") and not self.carrying then
+		if (c.other.type == "carryable") and not self.carrying and self.vacuumState == VS_SUCKING then
 			self.carrying = c.other
 			c.other.beingCarried = true
 		end
@@ -189,16 +201,23 @@ function Player:stateUpdate()
 			self.v.x = self.v.x - gustV.x*0.7
 			self.v.y = self.v.y - gustV.y*0.7
 			if (self.carrying) then
-				self.carrying.v.x = gustV.x * 2
-				self.carrying.v.y = gustV.y *2
-				self.carrying = nil
-				self.beingCarried = false
+
+				self.carrying.v.x = gustV.x
+				self.carrying.v.y = gustV.y
+				self:drop()
 			else
 				self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
 			end
 			self.gustCooldown = 60
 		end
 	end
+end
+function Player:drop()
+	self.carrying.beingCarried = false
+	self.carrying:drop()
+	self.carrying = nil
+
+
 end
 function Player:updateControls()
 	if pressing("left") then self:moveLeft() end

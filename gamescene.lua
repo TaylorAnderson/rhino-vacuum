@@ -6,6 +6,8 @@ require("platform")
 require("helpfuldog")
 require("slime")
 require ("bouncyball")
+require("dirttile")
+require("dirt")
 GameScene = Scene.new()
 GameScene.__index = GameScene
 local sti = require "libs.sti"
@@ -45,6 +47,7 @@ function GameScene:load()
 		end
 		self.camera.x = -(self.player.x - halfWidth + 40)
 		local layer = map.layers["tiles"].data
+		local dirtLayer = map.layers["dirt"].data
 		for x in ipairs(layer) do
 			for y in ipairs(layer) do
 				if layer[x][y] ~= nil then
@@ -52,6 +55,14 @@ function GameScene:load()
 				end
 			end
 		end
+		for x in ipairs(dirtLayer) do
+			for y in ipairs(dirtLayer) do
+				if dirtLayer[x][y] ~= nil then
+					self:add(DirtTile.new((y-1)*gs+mapx, (x-1)*gs+mapy, self.player))
+				end
+			end
+		end
+
 		mapx = mapx + map.layers["tiles"].width * 8
 		self.bounds.width = self.bounds.width + map.layers["tiles"].width * 8
 	end
