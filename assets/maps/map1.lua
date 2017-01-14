@@ -8,7 +8,7 @@ return {
   height = 12,
   tilewidth = 16,
   tileheight = 16,
-  nextobjectid = 9,
+  nextobjectid = 10,
   properties = {},
   tilesets = {
     {
@@ -37,7 +37,7 @@ return {
       tileheight = 16,
       spacing = 0,
       margin = 0,
-      image = "../img/dirt.png",
+      image = "../img/dirttile.png",
       imagewidth = 16,
       imageheight = 16,
       tileoffset = {
@@ -90,14 +90,14 @@ return {
           properties = {}
         },
         {
-          id = 8,
+          id = 9,
           name = "bouncyball",
           type = "",
           shape = "rectangle",
-          x = 160.75,
-          y = 128.75,
-          width = 12.25,
-          height = 9.75,
+          x = 188,
+          y = 107.5,
+          width = 0,
+          height = 0,
           rotation = 0,
           visible = true,
           properties = {}

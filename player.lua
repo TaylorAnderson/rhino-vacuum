@@ -2,6 +2,7 @@ require("lovepunk.entity")
 require("helpfuldog")
 require("hiteffect")
 require("gust")
+require("dustball")
 Player = Entity.new(0, 0, gs, gs)
 Player.__index = Player
 
@@ -96,16 +97,6 @@ function Player:update(dt)
 		self.carrying.v.x = 0
 		self.carrying.v.y = 0
 	end
-	if (self.carrying and self.carrying.kind == "dirt") then
-		self.scene:remove(self.carrying)
-		self:drop()
-		self.dirtCount = self.dirtCount + 1
-		if (self.dirtCount > 30) then
-			local dustball = DustBall.new()
-			self.scene:add(dustball)
-			self.carrying = dustball
-		end
-	end
 end
 
 function Player:move()
@@ -115,7 +106,18 @@ function Player:move()
 			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)
 			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)
 		end
-		if (c.other.type == "carryable") and not self.carrying and self.vacuumState == VS_SUCKING then
+
+		if (c.other.kind == "dirt" and self.vacuumState == VS_SUCKING) then
+			self.scene:remove(c.other)
+			self.dirtCount = self.dirtCount + 1
+			if (self.dirtCount > 30) then
+				local dustball = DustBall.new()
+				self.scene:add(dustball)
+				self.carrying = dustball
+				self.dirtCount = 0
+			end
+		end
+		if (c.other.type == "carryable" and c.other.kind ~= "dirt") and not self.carrying and self.vacuumState == VS_SUCKING then
 			self.carrying = c.other
 			c.other.beingCarried = true
 		end
