@@ -60,6 +60,10 @@ function Player.new(x, y)
 	self.carrying = nil
 
 	self.dirtCount = 0
+
+	self.canSuck = false
+
+	self.canSwitchToSuck = true
 	return self
 end
 
@@ -67,8 +71,10 @@ function Player:update(dt)
 	self.grounded = self:collide("level", self.x, self.y + 1) ~= nil
 	self:checkState()
 	self:stateUpdate()
+	self.canSuck = self.vacuumState == VS_SUCKING and not self.carrying
 	self:move()
 	self:updateAnimation(dt)
+
 	self.modeSwitchCooldown = self.modeSwitchCooldown - 1
 	self.gustCooldown = self.gustCooldown - 1
 	if self.currentAnim == self.upRunAnim then self.facing = F_UP end
@@ -107,7 +113,7 @@ function Player:move()
 			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)
 		end
 
-		if (c.other.kind == "dirt" and self.vacuumState == VS_SUCKING) then
+		if (c.other.kind == "dirt" and self.vacuumState == VS_SUCKING and not self.carrying) then
 			self.scene:remove(c.other)
 			self.dirtCount = self.dirtCount + 1
 			if (self.dirtCount > 30) then
@@ -117,7 +123,7 @@ function Player:move()
 				self.dirtCount = 0
 			end
 		end
-		if (c.other.type == "carryable" and c.other.kind ~= "dirt") and not self.carrying and self.vacuumState == VS_SUCKING then
+		if (c.other.type == "carryable" and c.other.kind ~= "dirt") and self.canSuck then
 			self.carrying = c.other
 			c.other.beingCarried = true
 		end
@@ -171,11 +177,13 @@ function Player:checkState()
 	if (pressing("button1")) then self.vacuumState = VS_BLOWING
 	elseif (self.vacuumState ~= VS_SUCKING) then self.vacuumState = VS_NONE end
 
-	if (pressing("button2") and self.modeSwitchCooldown < 0) then
+	if (pressing("button2") and self.canSwitchToSuck) then
 		if (self.vacuumState == VS_SUCKING) then self.vacuumState = VS_NONE
 		else self.vacuumState = VS_SUCKING end
-		self.modeSwitchCooldown = 30
+		self.canSwitchToSuck = false
 	end
+
+	if (not pressing("button2")) then self.canSwitchToSuck = true end
 end
 
 function Player:stateUpdate()

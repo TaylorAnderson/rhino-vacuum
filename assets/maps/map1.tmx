@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="12" tilewidth="16" tileheight="16" nextobjectid="10">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="12" tilewidth="16" tileheight="16" nextobjectid="11">
  <tileset firstgid="1" name="tilemap" tilewidth="16" tileheight="16" tilecount="1" columns="1">
   <image source="tileset.png" width="16" height="16"/>
  </tileset>
@@ -13,7 +13,7 @@
  </layer>
  <objectgroup name="objects">
   <object id="1" name="player" x="20.5" y="131" width="45" height="34.5"/>
-  <object id="9" name="bouncyball" x="188" y="107.5"/>
+  <object id="10" name="slime" x="89" y="146.25"/>
  </objectgroup>
  <layer name="dirt" width="20" height="12">
   <data encoding="base64">

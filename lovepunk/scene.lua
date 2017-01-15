@@ -9,7 +9,7 @@ function Scene.new()
 	self.camera = {x=0, y=0}
 	self.bounds = {x=0, y=0, width=0, height=0}
 	self.tweener = require "libs.flux"
-	self.debug = false
+	self.debug = true
 	self.pauseTimer = 0
 	return self
 
