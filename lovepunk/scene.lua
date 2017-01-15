@@ -9,7 +9,7 @@ function Scene.new()
 	self.camera = {x=0, y=0}
 	self.bounds = {x=0, y=0, width=0, height=0}
 	self.tweener = require "libs.flux"
-	self.debug = true
+	self.debug = false
 	self.pauseTimer = 0
 	return self
 
@@ -55,7 +55,9 @@ function Scene:draw()
 	table.sort(self.entities, layerSort)
 	love.graphics.translate(self.camera.x, self.camera.y)
 	for _, v in pairs(self.entities) do
-		v:draw()
+		if (v.visible) then
+			v:draw()
+		end
 		love.graphics.setColor(255, 255, 255)
 		if (self.debug) then
 			local x,y,w,h = self.bumpWorld:getRect(v)

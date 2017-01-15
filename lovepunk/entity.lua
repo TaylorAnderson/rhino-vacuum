@@ -15,6 +15,7 @@ function Entity.new(x, y, width, height)
 	self.scaleX = 1
 	self.scaleY = 1
 	self.collisionMap={}
+	self.visible = true
 	return self
 end
 function entityFilter(item, other)

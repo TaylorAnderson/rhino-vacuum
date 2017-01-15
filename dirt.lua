@@ -31,16 +31,19 @@ function Dirt:update()
 	if (self.pullLock and not self.player.canSuck) then self.pullLock = false end
 
 	if (self.pullLock) then
-		local str = (40-distance(self.x, self.y, self.player.x, self.player.y))/5
+		self.dislodged = true
+		self.lodgeTimer = 1
+		local str = (30-distance(self.x, self.y, self.player.x, self.player.y))/10
 		if (str < 0) then str = 0 end
-		self.v = findVector({x=self.x, y=self.y}, {x=self.player.x+self.player.width/2, y=self.player.y + self.player.height/2}, str)
+		local pull = findVector({x=self.x, y=self.y}, {x=self.player.x+self.player.width/2, y=self.player.y + self.player.height/2}, str)
+		self.v.x = self.v.x + pull.x
+		self.v.y = self.v.y + pull.y
 	end
 
 	if (self.dislodged) then
 		self.v.y = self.v.y + self.gravity
 	end
 	self.v.x = self.v.x * self.friction
-	self.v.y = self.v.y * self.friction
 	if (self:collide("gust", x, y)) then
 		local gust = self:collide("gust", x, y)
 		self.v.x = self.v.x + gust.v.x/20

@@ -64,6 +64,10 @@ function Player.new(x, y)
 	self.canSuck = false
 
 	self.canSwitchToSuck = true
+
+	self.flickerCounter = 0
+	self.flickerAmt = 5
+	self.damageCounter = 0
 	return self
 end
 
@@ -103,6 +107,21 @@ function Player:update(dt)
 		self.carrying.v.x = 0
 		self.carrying.v.y = 0
 	end
+
+	if (self.damageCounter > 0) then
+		self.flickerCounter = self.flickerCounter + 1
+		if (self.flickerCounter > self.flickerAmt) then
+			self.visible = true
+			if (self.flickerCounter > self.flickerAmt*2) then
+				self.visible = false
+				self.flickerCounter = 0
+			end
+		end
+		self.damageCounter = self.damageCounter -1
+	else
+		self.flickerCounter = 0
+		self.visible = true
+	end
 end
 
 function Player:move()
@@ -126,6 +145,9 @@ function Player:move()
 		if (c.other.type == "carryable" and c.other.kind ~= "dirt") and self.canSuck then
 			self.carrying = c.other
 			c.other.beingCarried = true
+		end
+		if (c.other.type == "enemy") then
+			self:takeDamage(c.other, 1)
 		end
 	end
 	self.x = self.x + self.v.x
@@ -173,17 +195,6 @@ function Player:checkState()
 		self.state = S_ONGROUND
 	else self.state = S_INAIR
 	end
-
-	if (pressing("button1")) then self.vacuumState = VS_BLOWING
-	elseif (self.vacuumState ~= VS_SUCKING) then self.vacuumState = VS_NONE end
-
-	if (pressing("button2") and self.canSwitchToSuck) then
-		if (self.vacuumState == VS_SUCKING) then self.vacuumState = VS_NONE
-		else self.vacuumState = VS_SUCKING end
-		self.canSwitchToSuck = false
-	end
-
-	if (not pressing("button2")) then self.canSwitchToSuck = true end
 end
 
 function Player:stateUpdate()
@@ -208,8 +219,8 @@ function Player:stateUpdate()
 			gustV.x = gustV.x + self.v.x
 			gustV.y = gustV.y + self.v.y
 
-			self.v.x = self.v.x - gustV.x*0.7
-			self.v.y = self.v.y - gustV.y*0.7
+			self.v.x = self.v.x - gustV.x*0.9
+			self.v.y = self.v.y - gustV.y*0.9
 			if (self.carrying) then
 
 				self.carrying.v.x = gustV.x
@@ -235,6 +246,16 @@ function Player:updateControls()
 	if pressing("jump") and (self.grounded) then
 		self:jump()
 	end
+	if (pressing("button1")) then self.vacuumState = VS_BLOWING
+	elseif (self.vacuumState ~= VS_SUCKING) then self.vacuumState = VS_NONE end
+
+	if (pressing("button2") and self.canSwitchToSuck) then
+		if (self.vacuumState == VS_SUCKING) then self.vacuumState = VS_NONE
+		else self.vacuumState = VS_SUCKING end
+		self.canSwitchToSuck = false
+	end
+
+	if (not pressing("button2")) then self.canSwitchToSuck = true end
 end
 
 function Player:updateAnimation(dt)
@@ -283,4 +304,13 @@ function Player:flip(reverse)
 		self.scaleX = 1
 		self.flipped = false
 	end
+end
+
+function Player:takeDamage(e, dmg)
+	local knockback = {x=0, y=0}
+	knockback = findVector({x=self.x, y=self.y}, {x=e.x, y=e.y}, 7, true)
+	if (knockback.y > 0) then knockback.y = 0 end
+	self.v.x = self.v.x + knockback.x*2
+	self.v.y = self.v.y + knockback.y-1
+	self.damageCounter = 120
 end
