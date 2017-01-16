@@ -8,6 +8,7 @@ require("slime")
 require ("bouncyball")
 require("dirttile")
 require("dirt")
+require("face")
 GameScene = Scene.new()
 GameScene.__index = GameScene
 local sti = require "libs.sti"
@@ -40,13 +41,17 @@ function GameScene:load()
 				self.player = Player.new(object.x+mapx, object.y+mapy)
 				self:add(self.player)
 			end
-				
+
 			if (object.name == "bouncyball") then
 				self:add(BouncyBall.new(object.x + mapx, object.y + mapy, self.player))
 			end
 
 			if (object.name == "slime") then
 				self:add(Slime.new(object.x + mapx, object.y + mapy))
+			end
+
+			if (object.name == "face") then
+				self:add(Face.new(object.x + mapx, object.y + mapy))
 			end
 		end
 		self.camera.x = -(self.player.x - halfWidth + 40)

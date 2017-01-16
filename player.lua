@@ -135,7 +135,7 @@ function Player:move()
 		if (c.other.kind == "dirt" and self.vacuumState == VS_SUCKING and not self.carrying) then
 			self.scene:remove(c.other)
 			self.dirtCount = self.dirtCount + 1
-			if (self.dirtCount > 30) then
+			if (self.dirtCount > 60) then
 				local dustball = DustBall.new()
 				self.scene:add(dustball)
 				self.carrying = dustball
