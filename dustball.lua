@@ -28,7 +28,7 @@ function DustBall:update()
 	Holdable.update(self)
 end
 function DustBall:move()
-	local _,_,cols = self.scene.bumpWorld:move(self, self.x + self.v.x, self.y + self.v.y, entityFilter)
+	local _,_,cols = self.scene.bumpWorld:move(self, self.x, self.y, entityFilter)
 	local len = 0
 	for _, c in pairs(cols) do
 		len = len+1

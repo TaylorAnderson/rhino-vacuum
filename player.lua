@@ -222,9 +222,9 @@ function Player:stateUpdate()
 			self.v.x = self.v.x - gustV.x*0.9
 			self.v.y = self.v.y - gustV.y*0.9
 			if (self.carrying) then
-
 				self.carrying.v.x = gustV.x
 				self.carrying.v.y = gustV.y
+				if (self.facing == F_LEFT or self.facing == F_RIGHT and self.carrying.v.y > 0) then self.carrying.v.y = 0 end
 				self:drop()
 			else
 				self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
