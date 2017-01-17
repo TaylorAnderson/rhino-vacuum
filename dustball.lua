@@ -13,6 +13,7 @@ function DustBall.new(x, y, player)
 	self.originX = self.width/2
 	self.originY = self.height/2
 	self.v = {x=0, y=0}
+	self.type = "dustball"
 	self.image = love.graphics.newImage("assets/img/dustball.png")
 	self.layer = -5
 	self.gravity = 0.1

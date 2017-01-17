@@ -100,6 +100,9 @@ function normalize(vector, length)
 	normal.y = normal.y * length
 	return normal
 end
+function magnitude(vector)
+	return math.sqrt((vector.x * vector.x) + (vector.y * vector.y))
+end
 function round(n)
     return n % 1 >= 0.5 and math.ceil(n) or math.floor(n)
 end
