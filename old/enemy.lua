@@ -1,6 +1,6 @@
-require("lovepunk.entity")
+require("lovepunk.Actor")
 require("helpfuldog")
-Enemy = Entity.new(0, 0, 18, 18)
+Enemy = Actor.new(0, 0, 18, 18)
 Enemy.__index = Enemy
 function Enemy.new(x, y, w, h)
 	local self = setmetatable({}, Enemy)

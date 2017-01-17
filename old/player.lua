@@ -1,9 +1,9 @@
-require("lovepunk.entity")
+require("Actor")
 require("helpfuldog")
 require("hiteffect")
 require("gust")
 require("dustball")
-Player = Entity.new(0, 0, gs, gs)
+Player = Actor.new(0, 0, gs, gs)
 Player.__index = Player
 
 S_INAIR = "inair"
@@ -305,12 +305,7 @@ function Player:flip(reverse)
 		self.flipped = false
 	end
 end
-
 function Player:takeDamage(e, dmg)
-	local knockback = {x=0, y=0}
-	knockback = findVector({x=self.x, y=self.y}, {x=e.x, y=e.y}, 7, true)
-	if (knockback.y > 0) then knockback.y = 0 end
-	self.v.x = self.v.x + knockback.x*2
-	self.v.y = self.v.y + knockback.y-1
+	Actor.takeDamage(self, e, dmg)
 	self.damageCounter = 120
 end

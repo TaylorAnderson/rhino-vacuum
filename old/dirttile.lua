@@ -43,6 +43,7 @@ function DirtTile:added()
 		self.scene:add(Dirt.new(self.x+4, self.y - 1,self.player))
 		self.scene:add(Dirt.new(self.x+8, self.y - 1,self.player))
 		self.scene:add(Dirt.new(self.x+12, self.y - 1,self.player))
+
 	end
 	scene:remove(this)
 
