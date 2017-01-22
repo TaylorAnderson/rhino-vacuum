@@ -305,6 +305,7 @@ local bounce = function(world, col, x,y,w,h, goalX, goalY, filter)
     local bnx, bny = goalX - tx, goalY - ty
     if col.normal.x == 0 then bny = -bny else bnx = -bnx end
     bx, by = tx + bnx, ty + bny
+
   end
 
   col.bounce   = {x = bx,  y = by}

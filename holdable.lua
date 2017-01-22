@@ -38,10 +38,11 @@ function Holdable:update()
 		end
 	end
 	if (self.beingCarried) then
-		self.player.v.x = self.player.v.x + self.v.x
-		self.player.v.y = self.player.v.y + self.v.y
+		self.v.x = 0
+		self.v.y = 0
 	end
 	PhysicsObject.update(self)
+
 end
 function Holdable:drop()
 end

@@ -69,7 +69,7 @@ function Dirt:update()
 		self.lodgeTimer = 1
 	end
 	self.lodgeTimer = self.lodgeTimer - 1
-	if (self:collide("level", self.x, self.y) and self.dislodged and self.lodgeTimer < 0) then
+	if ((self:collide("level", self.x, self.y) or self:collide("dirt", self.x, self.y)) and self.dislodged and self.lodgeTimer < 0) then
 		self.v.y = 0
 		self.v.x = 0
 		self.dislodged = false

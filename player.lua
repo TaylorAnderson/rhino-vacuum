@@ -55,7 +55,8 @@ function Player.new(x, y)
 	self.downRunAnim = anim8.newAnimation(grid('1-4', 3), 0.1)
 	self.suckAnim = anim8.newAnimation(suckgrid('1-4', 1), 0.05)
 	self.currentAnim = self.sideRunAnim
-	self.filters = {["level"]="slide", ["enemy"]="cross"}
+	self.defaultFilters = {["level"]="slide", ["enemy"]="cross"}
+	self.filters = self.defaultFilters
 	self.layer = -3
 	self.flipped = false
 	self.gustCooldown = 0
@@ -112,7 +113,10 @@ function Player:update(dt)
 	self:updateCollisions()
 	self:updateForces()
 	if self.damageCounter > 0 then self:updateDamageResponse() end
-	if self.carrying then self:updateCarried() end
+
+	if self.carrying then
+		self:updateCarried()
+	end
 
 	self.grounded = self:collide("level", self.x, self.y + 1) ~= nil
 
@@ -122,9 +126,10 @@ function Player:update(dt)
 	self.gustCooldown = self.gustCooldown - 1
 
 	if (self.dirtCount > 60) then
-		local dustball = DustBall.new(0, 0, self)
+		local dustball = DustBall.new(self.x, self.y-10, self)
 		self.scene:add(dustball)
 		self:pickup(dustball)
+		self:updateCarried()
 		self.dirtCount = 0
 	end
 	PhysicsObject.update(self, dt)
@@ -224,10 +229,10 @@ end
 
 function Player:updateCarried()
 	local cOffset = {x=0, y=0}
-	if (self.facing == F_LEFT) then cOffset.x = -self.width/2-6 end
-	if (self.facing == F_RIGHT) then cOffset.x = self.width/2+6 end
+	if (self.facing == F_LEFT) then cOffset.x = self.width/2 - self.carrying.width/2 - 12 end
+	if (self.facing == F_RIGHT) then cOffset.x = self.width/2 - self.carrying.width/2 + 12 end
 	if (self.facing == F_DOWN) then
-		cOffset.y = self.height/2+5
+		cOffset.y = self.height-2
 		if (self.flipped) then cOffset.x = -3
 		else cOffset.x = 3 end
 	end
@@ -236,19 +241,29 @@ function Player:updateCarried()
 		if (self.flipped) then cOffset.x = -6
 		else cOffset.x = 6 end
 	end
-	self.carrying.x = self.x + cOffset.x
-	self.carrying.y = self.y + cOffset.y
-	self.carrying.v.x = 0
-	self.carrying.v.y = 0
+	local actualX, actualY = self.scene.bumpWorld:move(self.carrying, self.x + cOffset.x, self.y + cOffset.y, carryingFilter)
+	self.carrying.x = actualX
+	self.carrying.y = actualY
+	if (self.carrying.isSolid) then
+		local offsetX = self.x - self.carrying.x
+		local offsetY = self.y - self.carrying.y
+		
+		self.v.x = self.v.x + offsetX
+		self.v.y = self.v.y + offsetY
+	end
+
+
 end
 function Player:pickup(e)
 	self.carrying = e
 	e.beingCarried = true
+	self.gustCooldown = 0
 end
 function Player:drop()
 	self.carrying.beingCarried = false
 	self.carrying:drop()
 	self.carrying = nil
+
 end
 
 function Player:flip(reverse)
@@ -288,4 +303,8 @@ function Player:updateDamageResponse()
 		self.flickerCounter = 0
 		self.visible = true
 	end
+end
+function carryingFilter(item, other)
+	if (other.type == "level") then return "slide"
+	else return "cross" end
 end

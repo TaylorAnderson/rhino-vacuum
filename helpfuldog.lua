@@ -86,7 +86,7 @@ function isBetween(pointA, pointB, betweenPoint, error)
 
 	squaredlengthba = (pointB.x - pointA.x) * (pointB.x - pointA.x) + (pointB.y - pointA.y) * (pointB.y - pointA.y);
 	if (dotproduct > squaredlengthba) then return false end;
-	
+
 	return true;
 end
 function map(x, fromMin, fromMax, toMin, toMax)

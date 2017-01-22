@@ -87,7 +87,7 @@ function Scene:collide(e, type, x, y)
 	local _,_, cols, len = self.bumpWorld:check(e, x, y, checkingFilter)
 	self.bumpWorld:update(e, e.x, e.y)
 	for _, v in pairs(cols) do
-		if (v.other.type == type) then return v.other end
+		if (v.other.type == type and v.other ~= e) then return v.other end
 	end
 	return nil
 
