@@ -16,10 +16,10 @@ function Scene.new()
 end
 function Scene:load()
 	self.loaded = true
-	self.bumpWorld = self.bump.newWorld(gs)
+	self.bumpWorld = self.bump.newWorld(1)
 end
 function Scene:update(dt)
-		self.tweener.update(dt)
+	self.tweener.update(dt)
 	self.pauseTimer = self.pauseTimer - dt
 	if not self.loaded or self.pauseTimer > 0 then return end
 	for _, e in pairs(self.entities) do
@@ -85,10 +85,13 @@ function Scene:remove(entity)
 end
 function Scene:collide(e, type, x, y)
 	local _,_, cols, len = self.bumpWorld:check(e, x, y, checkingFilter)
+	self.bumpWorld:update(e, e.x, e.y)
 	for _, v in pairs(cols) do
 		if (v.other.type == type) then return v.other end
 	end
 	return nil
+
+
 end
 function Scene:hasEntity(entity)
 	for _, e in pairs(self.entities) do
