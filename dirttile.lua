@@ -10,7 +10,6 @@ function DirtTile.new(x, y, player)
 	self.x = x
 	self.y = y
 	self.type = ""
-	self.image = love.graphics.newImage("assets/img/DirtTile.png")
 	self.layer = 11
 	return self
 end

@@ -36,11 +36,11 @@ function DustBall:move()
 			if (self.beingCarried) then
 				self.collisionLock = true
 			end
-			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)*1.1
-			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)*1.1
+			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)
+			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)
 		end
 	end
-	if (len == 1) then self.collisionLock = false end
+	if (len == 1 or not self.beingCarried) then self.collisionLock = false end
 	self.x = self.x + self.v.x
 	self.y = self.y + self.v.y
 	self.scene.bumpWorld:update(self, self.x, self.y)

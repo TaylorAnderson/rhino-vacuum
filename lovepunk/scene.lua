@@ -59,7 +59,7 @@ function Scene:draw()
 			v:draw()
 		end
 		love.graphics.setColor(255, 255, 255)
-		if (self.debug) then
+		if (self.debug or v.type == "level") then
 			local x,y,w,h = self.bumpWorld:getRect(v)
 			love.graphics.rectangle("line", x, y, w, h)
 		end

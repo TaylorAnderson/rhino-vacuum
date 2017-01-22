@@ -68,6 +68,7 @@ function Player.new(x, y)
 	self.flickerCounter = 0
 	self.flickerAmt = 5
 	self.damageCounter = 0
+	self.controlLock = 0
 	return self
 end
 
@@ -122,6 +123,7 @@ function Player:update(dt)
 		self.flickerCounter = 0
 		self.visible = true
 	end
+	self.controlLock = self.controlLock - 1
 end
 
 function Player:move()
@@ -241,6 +243,7 @@ function Player:drop()
 
 end
 function Player:updateControls()
+	if (self.controlLock > 0) then return end
 	if pressing("left") then self:moveLeft() end
 	if pressing("right") then self:moveRight() end
 	if pressing("jump") and (self.grounded) then
@@ -311,6 +314,7 @@ function Player:takeDamage(e, dmg)
 	knockback = findVector({x=self.x, y=self.y}, {x=e.x, y=e.y}, 7, true)
 	if (knockback.y > 0) then knockback.y = 0 end
 	self.v.x = self.v.x + knockback.x*2
-	self.v.y = self.v.y + knockback.y-1
+	self.v.y = self.v.y + knockback.y
 	self.damageCounter = 120
+	self.controlLock = 60
 end

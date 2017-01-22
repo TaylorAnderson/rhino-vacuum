@@ -23,13 +23,15 @@ function Slime.new(x, y)
 end
 function Slime:update(dt)
 	local distToAdd = -1
-	if (self.v.x > 0) then distToAdd = distToAdd + self.width+1 end
+	if (self.v.x > 0) then distToAdd = distToAdd + self.width+2 end
 
-	local items, len = self.scene.bumpWorld:queryPoint(self.x + distToAdd, self.y + self.height + 1) -- 1 pixel below the left bottom corner of the object
+	local items, len = self.scene.bumpWorld:queryPoint(self.x + distToAdd, self.y+self.height+1) -- 1 pixel below the left bottom corner of the object
 	local foundLevel = false
 	for i = 1, len do
 		if (items[i].type == "level") then foundLevel = true end
 	end
+
+
 	if self:collide("level", self.x + self.v.x, self.y-1) or not foundLevel then self.v.x = self.v.x * -1 end
 
 	Enemy.update(self, dt)
