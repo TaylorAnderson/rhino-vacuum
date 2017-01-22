@@ -22,8 +22,6 @@ function Scene:update(dt)
 		self.tweener.update(dt)
 	self.pauseTimer = self.pauseTimer - dt
 	if not self.loaded or self.pauseTimer > 0 then return end
-
-
 	for _, e in pairs(self.entities) do
 		e:update(dt)
 		if (self.bumpWorld:hasItem(e)) then

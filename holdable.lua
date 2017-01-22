@@ -1,7 +1,7 @@
 require("lovepunk.entity")
 require("helpfuldog")
 
-Holdable = Entity.new(0, 0, 14, 14)
+Holdable = PhysicsObject.new(0, 0, 14, 14)
 Holdable.__index = Holdable
 
 
@@ -34,6 +34,9 @@ function Holdable:update()
 			end
 		end
 	end
+
+	PhysicsObject.update(self)
+	
 
 end
 function Holdable:drop()

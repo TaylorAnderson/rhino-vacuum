@@ -13,7 +13,6 @@ function Slime.new(x, y)
 
 	self.type = "enemy"
 	self.image = love.graphics.newImage("assets/img/enemy.png")
-	self.collisionMap = {["level"]="touch"}
 
 	local anim8 = require "libs.anim8"
 	local grid = anim8.newGrid(24, 24, self.image:getWidth(), self.image:getHeight())
@@ -63,8 +62,9 @@ function Slime:update(dt)
 		if self:collide("level", self.x + self.v.x, self.y-1) or not foundLevel then self.v.x = self.v.x * -1 end
 	end
 	if (self.v.x > 0.5) then self.v.x = self.v.x * 0.9 end
-	Enemy.update(self, dt)
 	self:updateAnimation(dt)
+	Enemy.update(self, dt)
+
 end
 
 function Slime:draw()

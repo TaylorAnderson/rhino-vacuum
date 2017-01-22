@@ -28,12 +28,12 @@ function Dirt:update()
 	end
 
 	if (self.beingPulled) then self.pullLock = true end
-	if (self.pullLock and not self.player.canSuck) then self.pullLock = false end
+	--if (self.pullLock and not self.player.canSuck) then self.pullLock = false end
 
 	if (self.pullLock) then
 		self.dislodged = true
 		self.lodgeTimer = 1
-		local str = (30-distance(self.x, self.y, self.player.x, self.player.y))/10
+		local str = (20-distance(self.x, self.y, self.player.x, self.player.y))/10
 		if (str < 0) then str = 0 end
 		local pull = findVector({x=self.x, y=self.y}, {x=self.player.x+self.player.width/2, y=self.player.y + self.player.height/2}, str)
 		self.v.x = self.v.x + pull.x
@@ -56,6 +56,10 @@ function Dirt:update()
 		self.v.y = 0
 		self.v.x = 0
 		self.dislodged = false
+	end
+	if (self:collide("player", self.x, self.y) and self.player.canSuck) then
+		self.scene:remove(self)
+		self.player.dirtCount = self.player.dirtCount+1
 	end
 
 	self.x = self.x + self.v.x
