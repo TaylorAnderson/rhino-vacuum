@@ -57,7 +57,7 @@ function Scene:draw()
 			v:draw()
 		end
 		love.graphics.setColor(255, 255, 255)
-		if (self.debug or v.type == "level") then
+		if (self.debug) then
 			local x,y,w,h = self.bumpWorld:getRect(v)
 			love.graphics.rectangle("line", x, y, w, h)
 		end
@@ -85,13 +85,10 @@ function Scene:remove(entity)
 end
 function Scene:collide(e, type, x, y)
 	local _,_, cols, len = self.bumpWorld:check(e, x, y, checkingFilter)
-	self.bumpWorld:update(e, e.x, e.y)
 	for _, v in pairs(cols) do
-		if (v.other.type == type and v.other ~= e) then return v.other end
+		if (v.other.type == type) then return v.other end
 	end
 	return nil
-
-
 end
 function Scene:hasEntity(entity)
 	for _, e in pairs(self.entities) do
