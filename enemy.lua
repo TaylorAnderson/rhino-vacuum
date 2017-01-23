@@ -1,6 +1,6 @@
 require("lovepunk.entity")
 require("helpfuldog")
-Enemy = Entity.new(0, 0, 18, 18)
+Enemy = PhysicsObject.new(0, 0, 18, 18)
 Enemy.__index = Enemy
 function Enemy.new(x, y, w, h)
 	local self = setmetatable({}, Enemy)
@@ -16,26 +16,12 @@ function Enemy.new(x, y, w, h)
 	self.v = {x=0, y=0}
 	self.grounded = false
 	self.type = "enemy"
-	self.collisionMap = {["level"]="touch"}
 
 	return self
 end
 function Enemy:update(dt)
-	self:move()
-end
-
-function Enemy:move()
 	self.v.y = self.v.y + self.gravity
-	local _,_,cols = self.scene.bumpWorld:check(self, self.x + self.v.x, self.y + self.v.y, entityFilter)
-	for _, c in pairs(cols) do
-		if (c.other.type == "level") then
-			self.v.x = self.v.x + c.normal.x*math.abs(self.v.x)
-			self.v.y = self.v.y + c.normal.y*math.abs(self.v.y)
-		end
-	end
-	self.x = self.x + self.v.x
-	self.y = self.y + self.v.y
-	self.scene.bumpWorld:update(self, self.x, self.y)
+	PhysicsObject.update(self, dt)
 end
 
 function Enemy:die()

@@ -16,11 +16,8 @@ function Entity.new(x, y, width, height)
 	self.scaleY = 1
 	self.collisionMap={}
 	self.visible = true
+	
 	return self
-end
-function entityFilter(item, other)
-	if (item.collisionMap[other.type] == nil) then return "cross" end
-	return item.collisionMap[other.type]
 end
 function Entity:added()
 end

@@ -4,7 +4,8 @@ Dirt = Holdable.new(0, 0, 4, 4)
 Dirt.__index = Dirt
 
 
-function Dirt.new(x, y, player)
+function Dirt.new(x, y, player, dir)
+
 	local self = setmetatable({}, Dirt)
 	self.x = x
 	self.y = y
@@ -12,6 +13,7 @@ function Dirt.new(x, y, player)
 	self.player = player
 	self.type = "carryable"
 	self.kind = "dirt"
+	self.filters={["level"]="touch"}
 	self.gravity = 0.05
 	self.suckRange = 30
 	self.img = love.graphics.newImage("assets/img/dirt.png")
@@ -24,7 +26,22 @@ function Dirt.new(x, y, player)
 end
 function Dirt:update()
 	if (not self.pullLock) then
-		Holdable.update(self)
+		--holdable update without the physics schtuff
+		self.beingPulled = false
+		if (self.player ~= nil and not self.beingCarried) then
+			if (distance(self.player.x, self.player.y, self.x, self.y) < self.suckRange) then
+				local isBeingSucked = false
+				local facing = self.player.facing
+				if self.player.vacuumState == VS_SUCKING and not self.player.carrying and
+					((facing == F_DOWN and self .y > self.player.y) or
+					(facing == F_UP and self.y < self.player.y) or
+					(facing == F_LEFT and self.x < self.player.x) or
+					(facing == F_RIGHT and self.x > self.player.x)) then
+					self.v = findVector({x=self.x, y=self.y}, {x=self.player.x+self.player.width/2, y=self.player.y + self.player.height/2}, 3)
+					self.beingPulled = true
+				end
+			end
+		end
 	end
 
 	if (self.beingPulled) then self.pullLock = true end
@@ -33,7 +50,7 @@ function Dirt:update()
 	if (self.pullLock) then
 		self.dislodged = true
 		self.lodgeTimer = 1
-		local str = (30-distance(self.x, self.y, self.player.x, self.player.y))/10
+		local str = (20-distance(self.x, self.y, self.player.x, self.player.y))/10
 		if (str < 0) then str = 0 end
 		local pull = findVector({x=self.x, y=self.y}, {x=self.player.x+self.player.width/2, y=self.player.y + self.player.height/2}, str)
 		self.v.x = self.v.x + pull.x
@@ -52,10 +69,14 @@ function Dirt:update()
 		self.lodgeTimer = 1
 	end
 	self.lodgeTimer = self.lodgeTimer - 1
-	if (self:collide("level", self.x, self.y) and self.dislodged and self.lodgeTimer < 0) then
+	if ((self:collide("level", self.x, self.y) or self:collide("dirt", self.x, self.y)) and self.dislodged and self.lodgeTimer < 0) then
 		self.v.y = 0
 		self.v.x = 0
 		self.dislodged = false
+	end
+	if (self:collide("player", self.x, self.y) and self.player.canSuck) then
+		self.scene:remove(self)
+		self.player.dirtCount = self.player.dirtCount+1
 	end
 
 	self.x = self.x + self.v.x
