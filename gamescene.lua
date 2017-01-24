@@ -34,14 +34,17 @@ function GameScene:load()
 	self.maps = {self.map1, self.map2}
 	local mapx=0
 	local mapy=0
-
 	for _, map in pairs(self.maps) do
 		for _, object in pairs(map.objects) do
 			if (object.name == "player") then
 				self.player = Player.new(object.x+mapx, object.y+mapy)
 				self:add(self.player)
 			end
+		end
+	end
 
+	for _, map in pairs(self.maps) do
+		for _, object in pairs(map.objects) do
 			if (object.name == "bouncyball") then
 				self:add(BouncyBall.new(object.x + mapx, object.y + mapy, self.player))
 			end

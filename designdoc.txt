@@ -1,0 +1,11 @@
+rhino vacuum design doc
+
+CONCEPTS
+	Indispensable:
+
+	Important
+
+	If Possible
+
+	Rejected
+		

@@ -116,7 +116,6 @@ function Player:update(dt)
 
 	if self.carrying then
 		self:updateCarried()
-		self:updateCarried()
 	end
 
 	self.grounded = self:collide("level", self.x, self.y + 1) ~= nil
@@ -242,15 +241,16 @@ function Player:updateCarried()
 		if (self.flipped) then cOffset.x = -6
 		else cOffset.x = 6 end
 	end
+	local offset = {x=self.x + cOffset.x+self.v.x, y=self.y + cOffset.y+self.v.y}
+	local actualX, actualY = self.scene.bumpWorld:move(self.carrying, offset.x, offset.y, carryingFilter)
 
-	local actualX, actualY = self.scene.bumpWorld:move(self.carrying, self.x + cOffset.x, self.y + cOffset.y, carryingFilter)
-	self.carrying.x = actualX+self.v.x
-	self.carrying.y = actualY+self.v.y
-	if self.carrying.isSolid and (actualX ~= self.x + cOffset.x or actualY ~= self.y + cOffset.y) then
-		local offset = {x=(self.x + cOffset.x) - (actualX - self.v.x), y=(self.y + cOffset.y) - (actualY - self.v.y)}
-		offset = normalize(offset, magnitude(self.v)*self.carrying.bounciness)
-		self.v.x = self.v.x - offset.x
-		self.v.y = self.v.y - offset.y
+	self.carrying.x = actualX
+	self.carrying.y = actualY
+	if self.carrying.isSolid and (actualX ~= offset.x or actualY ~= offset.y) then
+		local force = {x=offset.x - actualX, y=offset.y - actualY}
+		force = normalize(force, magnitude(self.v) * self.carrying.bounciness)
+		self.v.x = self.v.x - force.x
+		self.v.y = self.v.y - force.y
 	end
 end
 function Player:pickup(e)

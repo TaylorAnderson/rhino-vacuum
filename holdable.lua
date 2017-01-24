@@ -22,6 +22,7 @@ function Holdable.new(x, y,w, h)
 end
 function Holdable:update()
 	self.beingPulled = false
+
 	if (self.player ~= nil and not self.beingCarried) then
 		if (distance(self.player.x, self.player.y, self.x, self.y) < self.suckRange) then
 			local isBeingSucked = false

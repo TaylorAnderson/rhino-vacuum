@@ -19,7 +19,8 @@ function BouncyBall.new(x, y, player)
 	self.gravity = 0.1
 	self.friction = 0.99
 	self.rotation = 0
-	self.bounciness = 1.7
+	self.bounciness = 1.9
+	self.suckRange = 40
 
 	self.isSolid = true
 	return self
@@ -27,7 +28,6 @@ end
 function BouncyBall:update()
 	self.v.y = self.v.y + self.gravity
 	self.v.x = self.v.x * self.friction
-
 	self.rotation = self.rotation + toRadians(self.v.x*2)
 	Holdable.update(self)
 end
