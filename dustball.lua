@@ -14,6 +14,7 @@ function DustBall.new(x, y, player, size)
 	self.type = "carryable"
 	self.kind = "dustball"
 	self.filters = {["level"]="bounce"}
+	self.size=  size
 	if size == 1 then
 		self.image = love.graphics.newImage("assets/img/smalldustball.png")
 		self.width = 6
@@ -38,7 +39,7 @@ end
 function DustBall:update()
 	self.v.y = self.v.y + self.gravity
 	self.v.x = self.v.x * self.friction
-	self.rotation = self.rotation + toRadians(self.v.x*5)
+	self.rotation = self.rotation + toRadians(self.v.x*(11-self.size*2))
 	Holdable.update(self)
 end
 

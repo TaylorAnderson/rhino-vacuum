@@ -144,40 +144,35 @@ function Player:updateControls()
 	if (pressing("button1")) then
 		self.vacuumState = VS_BLOWING
 		if self.gustCooldown <= 0 then
-			if self.dirtCount == 0 then
-				local gustV = {x=0, y=0}
-				if (self.currentAnim == self.upRunAnim) then gustV.y = -5 end
-				if (self.currentAnim == self.sideRunAnim) then
-					if (self.flipped) then gustV.x = -5
-					else gustV.x = 5 end
-				end
-				if (self.currentAnim == self.downRunAnim) then gustV.y = 5 end
+			local gustV = {x=0, y=0}
+			if (self.currentAnim == self.upRunAnim) then gustV.y = -5 end
+			if (self.currentAnim == self.sideRunAnim) then
+				if (self.flipped) then gustV.x = -5
+				else gustV.x = 5 end
+			end
+			if (self.currentAnim == self.downRunAnim) then gustV.y = 5 end
+			gustV.x = gustV.x + self.v.x
+			gustV.y = gustV.y + self.v.y
 
-				gustV.x = gustV.x + self.v.x
-				gustV.y = gustV.y + self.v.y
-
-				self.v.x = self.v.x - gustV.x*0.9
-				self.v.y = self.v.y - gustV.y*0.9
-				if (self.carrying) then
-					self.carrying.v.x = gustV.x
-					self.carrying.v.y = gustV.y
-					if (self.facing == F_LEFT or self.facing == F_RIGHT and self.carrying.v.y > 0) then self.carrying.v.y = 0 end
-					self:drop()
-				else
-					self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
-				end
+			if (self.carrying) then
+				self.carrying.v.x = gustV.x
+				self.carrying.v.y = gustV.y
+				if (self.facing == F_LEFT or self.facing == F_RIGHT and self.carrying.v.y > 0) then self.carrying.v.y = 0 end
+				self:drop()
+			elseif self.vacuumIndicator.anim.position == 1 then
+				self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
+				self.dirtCount = 0
 			else
-				local dustball = DustBall.new(self.x + self.width/2, self.y + self.height/2, self.player, self.vacuumIndicator.anim.position)
-				if self.facing == F_LEFT then dustball.v.x = -10 end
-				if self.facing == F_RIGHT then dustball.v.x = 10 end
-				if self.facing == F_DOWN then dustball.v.y = 10 end
-				if self.facing == F_UP then dustball.v.y = -10 end
-				dustball.v.x = dustball.v.x + self.v.x
-				dustball.v.y = dustball.v.y + self.v.y
+				local dustball = DustBall.new(self.x + self.width/2, self.y+self.height, self.player, self.vacuumIndicator.anim.position-1)
+				dustball.y = dustball.y - dustball.height
+				dustball.v.x = gustV.x
+				dustball.v.y = gustV.y
 				dustball.v = normalize(dustball.v, 3)
-
+				self.dirtCount = 0
 				self.scene:add(dustball)
 			end
+			self.v.x = self.v.x - gustV.x*0.9
+			self.v.y = self.v.y - gustV.y*0.9
 			self.gustCooldown = 60
 		end
 	elseif (self.vacuumState ~= VS_SUCKING) then self.vacuumState = VS_NONE end
@@ -242,17 +237,20 @@ end
 
 function Player:updateCarried()
 	local cOffset = {x=0, y=0}
-	if (self.facing == F_LEFT) then cOffset.x = self.width/2 - self.carrying.width/2 - 12 end
-	if (self.facing == F_RIGHT) then cOffset.x = self.width/2 - self.carrying.width/2 + 12 end
+	if (self.facing == F_LEFT) then cOffset.x = -self.carrying.width end
+	if (self.facing == F_RIGHT) then cOffset.x = self.width end
 	if (self.facing == F_DOWN) then
-		cOffset.y = self.height-2
-		if (self.flipped) then cOffset.x = -3
-		else cOffset.x = 3 end
+		cOffset.y = self.height
+		-- if (self.flipped) then cOffset.x = -3
+		-- else cOffset.x = 3 end
+
+		cOffset.x = self.width/2 - self.carrying.width/2
 	end
 	if (self.facing == F_UP) then
-		cOffset.y = -self.height/2-5
-		if (self.flipped) then cOffset.x = -6
-		else cOffset.x = 6 end
+		cOffset.y = -self.height
+		-- if (self.flipped) then cOffset.x = -6
+		-- else cOffset.x = 6 end
+		cOffset.x = self.width/2 - self.carrying.width/2
 	end
 	local offset = {x=self.x + cOffset.x+self.v.x, y=self.y + cOffset.y+self.v.y}
 	local actualX, actualY = self.scene.bumpWorld:move(self.carrying, offset.x, offset.y, carryingFilter)
