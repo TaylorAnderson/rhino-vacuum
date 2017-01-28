@@ -4,19 +4,31 @@ DustBall = Holdable.new(0, 0, 14, 14)
 DustBall.__index = DustBall
 
 
-function DustBall.new(x, y, player)
+function DustBall.new(x, y, player, size)
 	local self = setmetatable({}, DustBall)
 	self.x = x
 	self.y = y
 	self.collisionLock = false
 	self.player = player
-	self.originX = self.width/2
-	self.originY = self.height/2
 	self.v = {x=0, y=0}
 	self.type = "carryable"
 	self.kind = "dustball"
 	self.filters = {["level"]="bounce"}
-	self.image = love.graphics.newImage("assets/img/dustball.png")
+	if size == 1 then
+		self.image = love.graphics.newImage("assets/img/smalldustball.png")
+		self.width = 6
+		self.height = 6
+	elseif size == 2 then
+		self.image = love.graphics.newImage("assets/img/dustball.png")
+		self.width = 13
+		self.height = 13
+	else
+		self.image = love.graphics.newImage("assets/img/bigdustball.png")
+		self.width=30
+		self.height = 30
+	end
+	self.originX = self.width/2
+	self.originY = self.height/2
 	self.layer = -5
 	self.gravity = 0.1
 	self.friction = 0.99
@@ -26,7 +38,7 @@ end
 function DustBall:update()
 	self.v.y = self.v.y + self.gravity
 	self.v.x = self.v.x * self.friction
-	self.rotation = self.rotation + toRadians(self.v.x*2)
+	self.rotation = self.rotation + toRadians(self.v.x*5)
 	Holdable.update(self)
 end
 

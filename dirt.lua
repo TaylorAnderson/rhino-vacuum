@@ -22,6 +22,7 @@ function Dirt.new(x, y, player, dir)
 	self.dislodged = false
 	self.friction = 0.99
 	self.lodgeTimer = 0
+
 	return self
 end
 function Dirt:update()
@@ -76,7 +77,9 @@ function Dirt:update()
 	end
 	if (self:collide("player", self.x, self.y) and self.player.canSuck) then
 		self.scene:remove(self)
-		self.player.dirtCount = self.player.dirtCount+1
+		if self.player.dirtCount < self.player.maxDirtCount then
+			self.player.dirtCount = self.player.dirtCount+1
+		end
 	end
 
 	self.x = self.x + self.v.x
