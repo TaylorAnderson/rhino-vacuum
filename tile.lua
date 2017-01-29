@@ -6,11 +6,11 @@ Tile.__index = Tile
 function Tile.new(x, y)
 	local self = setmetatable({}, Tile)
 	self.x = x
-	self.y = math.floor(y)+0.01
+	self.y = y
 	self.type = "level"
 	self.image = love.graphics.newImage("assets/img/tile.png")
 	self.layer = 11
-
+	self.filters = {["level"]="cross"}
 	return self
 end
 function Tile:draw()

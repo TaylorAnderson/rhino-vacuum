@@ -71,6 +71,8 @@ function Player.new(x, y)
 	self.flickerAmt = 5
 	self.damageCounter = 0
 
+	self.facingOffset = {x=0, y=0}
+	self.doubleCount = 0
 	return self
 end
 function Player:added()
@@ -121,7 +123,34 @@ function Player:update(dt)
 
 	if self.carrying then
 		self:updateCarried()
+	else
+		if (self.facing == F_LEFT) then
+			self.facingOffset.x = 0
+			self.facingOffset.y = self.height/2
+		end
+		if (self.facing == F_RIGHT) then
+			self.facingOffset.x = self.width
+			self.facingOffset.y = self.height/2
+		end
+		if (self.facing == F_DOWN) then
+			self.facingOffset.y = self.height
+
+			self.facingOffset.x = self.width/2
+
+			if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
+			else self.facingOffset.x = self.facingOffset.x + 3 end
+
+		end
+		if (self.facing == F_UP) then
+			self.facingOffset.y = 0
+
+			self.facingOffset.x = self.width/2
+			if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
+			else self.facingOffset.x = self.facingOffset.x + 3 end
+		end
 	end
+
+	self.doubleCount = self.doubleCount-1
 
 	self.grounded = self:collide("level", self.x, self.y + 1) ~= nil
 
@@ -163,7 +192,7 @@ function Player:updateControls()
 				self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
 				self.dirtCount = 0
 			else
-				local dustball = DustBall.new(self.x + self.width/2, self.y+self.height, self.player, self.vacuumIndicator.anim.position-1)
+				local dustball = DustBall.new(self.x + self.width/2, self.y+self.height, self, self.vacuumIndicator.anim.position-1)
 				dustball.y = dustball.y - dustball.height
 				dustball.v.x = gustV.x
 				dustball.v.y = gustV.y
@@ -188,15 +217,21 @@ function Player:updateAnimation(dt)
 	self.currentAnim:update(dt)
 	if (self.vacuumState == VS_SUCKING) then self.suckAnim:update(dt) end
 
-	if self.flipped then self.facing = F_LEFT
-	else self.facing = F_RIGHT end
-	if pressing("up") then
-		self.currentAnim = self.upRunAnim
-		self.facing = F_UP
-	elseif pressing("down") then
-		self.currentAnim = self.downRunAnim
-		self.facing = F_DOWN
-	else self.currentAnim = self.sideRunAnim end
+	if not self.animLocked then
+		if self.flipped then self.facing = F_LEFT
+		else self.facing = F_RIGHT end
+		if pressing("up") then
+			--if self.doubleCount > 0 then self.animLocked = true end
+			self.doubleCount = 5
+			self.currentAnim = self.upRunAnim
+			self.facing = F_UP
+		elseif pressing("down") then
+			--if self.doubleCount > 0 then self.animLocked = true end
+			self.doubleCount = 5
+			self.currentAnim = self.downRunAnim
+			self.facing = F_DOWN
+		else self.currentAnim = self.sideRunAnim end
+	end
 	if pressing("left") or pressing("right") then
 		self.currentAnim:resume()
 	else
@@ -236,23 +271,31 @@ function Player:updateForces()
 end
 
 function Player:updateCarried()
-	local cOffset = {x=0, y=0}
-	if (self.facing == F_LEFT) then cOffset.x = -self.carrying.width end
-	if (self.facing == F_RIGHT) then cOffset.x = self.width end
+	if (self.facing == F_LEFT) then
+		self.facingOffset.x = -self.carrying.width
+		self.facingOffset.y = self.height/2 - self.carrying.height/2
+	end
+	if (self.facing == F_RIGHT) then
+		self.facingOffset.x = self.width
+		self.facingOffset.y = self.height/2 - self.carrying.height/2
+	end
 	if (self.facing == F_DOWN) then
-		cOffset.y = self.height
-		-- if (self.flipped) then cOffset.x = -3
-		-- else cOffset.x = 3 end
+		self.facingOffset.y = self.height
 
-		cOffset.x = self.width/2 - self.carrying.width/2
+		self.facingOffset.x = self.width/2 - self.carrying.width/2
+
+		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
+		else self.facingOffset.x = self.facingOffset.x + 3 end
 	end
 	if (self.facing == F_UP) then
-		cOffset.y = -self.height
-		-- if (self.flipped) then cOffset.x = -6
-		-- else cOffset.x = 6 end
-		cOffset.x = self.width/2 - self.carrying.width/2
+		self.facingOffset.y = -self.carrying.height
+
+		self.facingOffset.x = self.width/2 - self.carrying.width/2
+		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
+		else self.facingOffset.x = self.facingOffset.x + 3 end
 	end
-	local offset = {x=self.x + cOffset.x+self.v.x, y=self.y + cOffset.y+self.v.y}
+
+	local offset = {x=self.x + self.facingOffset.x+self.v.x, y=self.y + self.facingOffset.y+self.v.y}
 	local actualX, actualY = self.scene.bumpWorld:move(self.carrying, offset.x, offset.y, carryingFilter)
 
 	self.carrying.x = actualX

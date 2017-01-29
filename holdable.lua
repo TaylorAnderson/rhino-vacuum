@@ -32,7 +32,7 @@ function Holdable:update()
 				(facing == F_UP and self.y < self.player.y) or
 				(facing == F_LEFT and self.x < self.player.x) or
 				(facing == F_RIGHT and self.x > self.player.x)) then
-				self.v = findVector({x=self.x, y=self.y}, {x=self.player.x+self.player.width/2, y=self.player.y + self.player.height/2}, 3)
+				self.v = findVector({x=self.x, y=self.y}, {x=self.player.x+self.player.facingOffset.x, y=self.player.y + self.player.facingOffset.y}, 3)
 
 				self.beingPulled = true
 			end

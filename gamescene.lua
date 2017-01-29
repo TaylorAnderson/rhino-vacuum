@@ -9,6 +9,7 @@ require ("bouncyball")
 require("dirttile")
 require("dirt")
 require("face")
+require("luaXML")
 GameScene = Scene.new()
 GameScene.__index = GameScene
 local sti = require "libs.sti"
@@ -21,7 +22,6 @@ function GameScene.new()
 	self.shakeTimer = 0
 
 	self.oCameraX = 0
-
 	self.shakeOffsetX = 0
 	self.shakeOffsetY = 0
 	return self
@@ -29,60 +29,78 @@ end
 function GameScene:load()
 	Scene.load(self)
 
-	self.map1 = sti("assets/maps/map1.lua")
-	self.map2 = sti("assets/maps/map2.lua")
-	self.maps = {self.map1, self.map2}
-	local mapx=0
-	local mapy=0
-	for _, map in pairs(self.maps) do
-		for _, object in pairs(map.objects) do
-			if (object.name == "player") then
-				self.player = Player.new(object.x+mapx, object.y+mapy)
-				self:add(self.player)
-			end
-		end
-	end
 
-	for _, map in pairs(self.maps) do
-		for _, object in pairs(map.objects) do
-			if (object.name == "bouncyball") then
-				self:add(BouncyBall.new(object.x + mapx, object.y + mapy, self.player))
-			end
 
-			if (object.name == "slime") then
-				self:add(Slime.new(object.x + mapx, object.y + mapy))
-			end
-
-			if (object.name == "face") then
-				self:add(Face.new(object.x + mapx, object.y + mapy))
-			end
-		end
-		self.camera.x = -(self.player.x - halfWidth + 40)
-		local layer = map.layers["tiles"].data
-		local dirtLayer = map.layers["dirt"].data
-		for x in ipairs(layer) do
-			for y in ipairs(layer) do
-				if layer[x][y] ~= nil then
-					self:add(Tile.new((y-1)*gs+mapx, (x-1)*gs+mapy))
-				end
-			end
-		end
-		for x in ipairs(dirtLayer) do
-			for y in ipairs(dirtLayer) do
-				if dirtLayer[x][y] ~= nil then
-					self:add(DirtTile.new((y-1)*gs+mapx, (x-1)*gs+mapy, self.player))
-				end
-			end
-		end
-
-		mapx = mapx + map.layers["tiles"].width * 8
-		self.bounds.width = self.bounds.width + map.layers["tiles"].width * 8
-	end
-	self.bounds.height = self.maps[1].layers["tiles"].height * gs
+	-- self.map1 = sti("assets/maps/map1.lua")
+	-- self.map2 = sti("assets/maps/map2.lua")
+	-- self.maps = {self.map1, self.map2}
+	-- local mapx=0
+	-- local mapy=0
+	-- for _, map in pairs(self.maps) do
+	-- 	for _, object in pairs(map.objects) do
+	-- 		if (object.name == "player") then
+	-- 			self.player = Player.new(object.x+mapx, object.y+mapy)
+	-- 			self:add(self.player)
+	-- 		end
+	-- 	end
+	-- end
+	-- local counter = 0
+	-- for _, map in pairs(self.maps) do
+	-- 	for _, object in pairs(map.objects) do
+	-- 		if (object.name == "bouncyball") then
+	-- 			self:add(BouncyBall.new(object.x + mapx, object.y + mapy, self.player))
+	-- 		end
+	--
+	-- 		if (object.name == "slime") then
+	-- 			self:add(Slime.new(object.x + mapx, object.y + mapy))
+	-- 		end
+	--
+	-- 		if (object.name == "face") then
+	-- 			self:add(Face.new(object.x + mapx, object.y + mapy))
+	-- 		end
+	-- 	end
+	--
+	-- 	self.camera.x = -(self.player.x - halfWidth + 40)
+	--
+	-- 	local dirtLayer = map.layers["dirt"].data
+	-- 	local xPos, yPos = 1, 1
+	-- 	local mapWidth = map.layers["tiles"].width
+	-- 	local mapHeight = map.layers["tiles"].height
+	-- 	local layer = map.layers["tiles"].data
+	-- 	while yPos < mapHeight do
+	-- 		if layer[yPos][xPos] ~= nil then
+	-- 			self:add(Tile.new((xPos*gs-gs)+mapx, (yPos*gs)+mapy))
+	-- 			counter = counter + 1
+	-- 		end
+	-- 		xPos = xPos +1
+	-- 		if xPos > mapWidth then
+	-- 			xPos = 1
+	-- 			yPos = yPos + 1
+	-- 		end
+	-- 	end
+	-- 	xPos, yPos = 1, 1
+	-- 	local mapWidth = map.layers["dirt"].width
+	-- 	local mapHeight = map.layers["dirt"].height
+	-- 	while yPos < mapHeight do
+	-- 		if dirtLayer[yPos][xPos] ~= nil then
+	-- 			self:add(DirtTile.new((xPos*gs-gs)+mapx, (yPos*gs)+mapy, self.player))
+	-- 		end
+	-- 		xPos = xPos +1
+	-- 		if xPos > mapWidth then
+	-- 			xPos = 1
+	-- 			yPos = yPos + 1
+	-- 		end
+	-- 	end
+	--
+	-- 	mapx = mapx + map.layers["tiles"].width * gs
+	-- 	self.bounds.width = self.bounds.width + map.layers["tiles"].width * gs
+	-- end
+	--
+	-- self.bounds.height = self.maps[1].layers["tiles"].height * gs
+	-- print(counter)
 end
 function GameScene:update(dt)
 	Scene.update(self, dt)
-
 	if (pressing("right")) then self.camera.x = self.camera.x - 5 end
 	if (pressing("left")) then self.camera.x = self.camera.x + 5 end
 	self.camera.y = -(self.player.y - halfHeight) + self.shakeOffsetY;
@@ -99,11 +117,6 @@ function GameScene:update(dt)
 		self.shakeOffsetY = 0
 	end
 
-end
-function GameScene:draw()
-
-
-	Scene.draw(self)
 end
 function GameScene:shake(duration, intensity)
 	self.intensity = intensity or 5
