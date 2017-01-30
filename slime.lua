@@ -7,7 +7,6 @@ function Slime.new(x, y)
 	local self = setmetatable({}, Slime)
 	self.x = x
 	self.y = y
-	print("here!")
 	self.originX = -16
 	self.v = {x=0.5, y=0}
 	local rand = randomRange(1, 2)
