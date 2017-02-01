@@ -50,13 +50,12 @@ function GameScene:update(dt)
 	self.camera.x = clamp(-(self.player.x - halfWidth + 40)- self.player.width/2, self.camera.x, -(self.player.x - halfWidth - 40)-self.player.width/2)
 
 	if self.camera.x > 0 then self.camera.x = 0 end
-	print(self.camera.x)
 	self.camera.y = clamp(-self.bounds.height + (love.graphics.getHeight()/scale), self.camera.y, 0)
 
 	self.shakeTimer = self.shakeTimer - dt
 	if (self.shakeTimer > 0) then
 		self.shakeOffsetX = randomRange(-self.intensity, self.intensity)
-		self.shakeOffsetY = randomRange(-self.intensity, self.intensity)
+		self.shakeOffsetY = ran(-self.intensity, self.intensity)
 	else
 		self.shakeOffsetX = 0
 		self.shakeOffsetY = 0

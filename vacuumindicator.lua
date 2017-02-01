@@ -19,7 +19,7 @@ function VacuumIndicator:update()
 	self.offsetX=0
 	self.offsetY=9
 
-	if self.player.flipped then self.offsetX = 13 end
+	if self.player.flipped then self.offsetX = 9 end
 	if self.player.currentAnim.position == 2 or self.player.currentAnim.position == 4 then self.offsetY = 8 end
 	self.x = self.player.x+self.offsetX
 	self.y = self.player.y+self.offsetY

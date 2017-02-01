@@ -17,6 +17,7 @@ function Holdable.new(x, y,w, h)
 	self.suckRange = 60
 	self.beingPulled = false
 	self.beingCarried = false
+	self.usePhysics = true
 	self.filters={["level"]="cross"}
 	return self
 end
@@ -42,7 +43,9 @@ function Holdable:update()
 		self.v.x = 0
 		self.v.y = 0
 	end
-	PhysicsObject.update(self)
+	if (self.usePhysics) then
+		PhysicsObject.update(self)
+	end
 
 end
 function Holdable:drop()

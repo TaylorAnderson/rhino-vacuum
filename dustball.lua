@@ -34,6 +34,7 @@ function DustBall.new(x, y, player, size)
 	self.gravity = 0.1
 	self.friction = 0.99
 	self.rotation = 0
+	self.isSolid = false
 	return self
 end
 function DustBall:update()
