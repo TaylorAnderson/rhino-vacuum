@@ -51,6 +51,9 @@ end
 function Scene:draw()
 	if not self.loaded then return end
 	table.sort(self.entities, layerSort)
+	if self.debug then
+		 love.graphics.print("FPS: "..tostring(love.timer.getFPS( )), 5, 5)
+	end
 	love.graphics.translate(self.camera.x, self.camera.y)
 	for _, v in pairs(self.entities) do
 		if (v.visible) then
@@ -62,6 +65,8 @@ function Scene:draw()
 			love.graphics.rectangle("line", x, y, w, h)
 		end
 	end
+
+
 end
 function Scene:add(entity)
 	if not self.loaded then return end

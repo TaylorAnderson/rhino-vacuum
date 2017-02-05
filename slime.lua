@@ -25,20 +25,7 @@ function Slime.new(x, y)
 
 end
 function Slime:update(dt)
-	if (self:collide("carryable", self.x, self.y)) then
-		local carryable = self:collide("carryable", self.x, self.y)
-		if (carryable.kind == "dustball") then
-			local dustball = carryable
-			if (magnitude(dustball.v) > 3) then
-				self.scene:remove(dustball)
-				self:die()
-				return
-			end
-	 		local bounce = findVector({x=self.x, y=self.y}, {x=dustball.x, y=dustball.y}, magnitude(dustball.v))
-			dustball.v.x = dustball.v.x + bounce.x
-			dustball.v.y = dustball.v.y + bounce.y
-		end
-	end
+	Enemy.update(self, dt)
 	if (self.damageCounter > 0) then
 		self.flickerCounter = self.flickerCounter + 1
 		if (self.flickerCounter > self.flickerAmt) then
@@ -52,25 +39,29 @@ function Slime:update(dt)
 	else
 		self.flickerCounter = 0
 		self.visible = true
-		local distToAdd = -1
-		if (self.v.x > 0) then distToAdd = distToAdd + self.width+1 end
-
-		local items, len = self.scene.bumpWorld:queryPoint(self.x + distToAdd, self.y + self.height + 1) -- 1 pixel below the left bottom corner of the object
-		local foundLevel = false
-		for i = 1, len do
-			if (items[i].type == "level") then foundLevel = true end
-		end
-		if self:collide("level", self.x + self.v.x, self.y-1) or not foundLevel then self.v.x = self.v.x * -1 end
 	end
+	local distToAdd = 0
+	if (self.v.x > 0) then distToAdd = distToAdd + self.width end
+
+	local items, len = self.scene.bumpWorld:queryRect(self.x + distToAdd, self.y + self.height + 1, 2, 2) -- 1 pixel below the left bottom corner of the object
+	local foundLevel = false
+	for i, v in ipairs(items) do
+		if (v.type == "level") then foundLevel = true end
+	end
+	if self:collide("level", self.x + self.v.x, self.y-1) or not foundLevel then
+		self.v.x = self.v.x * -1
+	end
+
 	if (self.v.x > 0.5) then self.v.x = self.v.x * 0.9 end
 	if (math.abs(self.v.x) < 0.5) then self.v.x = self.v.x +0.05 end
 	self:updateAnimation(dt)
-	Enemy.update(self, dt)
+
 end
 
 function Slime:draw()
 	Enemy.draw(self)
 	self.currentAnim:draw(self.image, self.x, self.y - 6, 0, self.scaleX, self.scaleY, self.originX, self.originY)
+	love.graphics.rectangle("fill", self.x, self.y+self.height+1, 1, 1)
 end
 function Slime:updateAnimation(dt)
 	self.currentAnim:update(dt)

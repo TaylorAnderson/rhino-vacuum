@@ -1,5 +1,5 @@
 require("lovepunk.entity")
-Gust = Entity.new(0, 0, gs, gs)
+Gust = Entity.new(0, 0, 8, 8)
 Gust.__index = Gust
 
 
@@ -7,8 +7,6 @@ function Gust.new(x, y, v)
 	local self = setmetatable({}, Gust)
 	self.x = x
 	self.y = y
-	self.originX = self.width/2
-	self.originY = self.height/2
 	if (math.abs(v.y) > math.abs(v.x)) then
 		if (v.y > 0) then self.rotation = toRadians(90) end
 		if (v.y < 0) then self.rotation = toRadians(-90) end
@@ -19,7 +17,7 @@ function Gust.new(x, y, v)
 	self.type = "gust"
 	self.image = love.graphics.newImage("assets/img/gust.png")
 	local anim8 = require "libs.anim8"
-	local grid = anim8.newGrid(12, 16, self.image:getWidth(), self.image:getHeight())
+	local grid = anim8.newGrid(8, 8, self.image:getWidth(), self.image:getHeight())
 	self.anim = anim8.newAnimation(grid('1-3', 1), {self.lifetime/2, self.lifetime/4, self.lifetime/4})
 
 	self.counter = 0

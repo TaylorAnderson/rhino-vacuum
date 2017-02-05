@@ -5,7 +5,7 @@ require("gust")
 require("dustball")
 require("physicsobject")
 require("vacuumindicator")
-Player = PhysicsObject.new(0, 0, gs-4, gs)
+Player = PhysicsObject.new(0, 0, gs-2, gs)
 Player.__index = Player
 
 S_INAIR = "inair"
@@ -32,7 +32,7 @@ function Player.new(x, y)
 		right = moveRight,
 		up = jump
 	}
-	self.originX = 2
+	self.originX = 1
 	self.vacuumState = VS_NONE
 	self.friction = 0.6
 	self.normalFriction = 0.6
@@ -121,34 +121,30 @@ function Player:update(dt)
 	self:updateCollisions()
 	self:updateForces()
 	if self.damageCounter > 0 then self:updateDamageResponse() end
+	self.facingOffset.x, self.facingOffset.y = 0, 0
+	if (self.facing == F_LEFT) then
+		self.facingOffset.x = 0
+		self.facingOffset.y = self.height/2
+	end
+	if (self.facing == F_RIGHT) then
+		self.facingOffset.x = self.width
+		self.facingOffset.y = self.height/2
+	end
+	if (self.facing == F_DOWN) then
+		self.facingOffset.y = self.height
 
-	if self.carrying then
-		self:updateCarried()
-	else
-		if (self.facing == F_LEFT) then
-			self.facingOffset.x = 0
-			self.facingOffset.y = self.height/2
-		end
-		if (self.facing == F_RIGHT) then
-			self.facingOffset.x = self.width
-			self.facingOffset.y = self.height/2
-		end
-		if (self.facing == F_DOWN) then
-			self.facingOffset.y = self.height
+		self.facingOffset.x = self.width/2
 
-			self.facingOffset.x = self.width/2
+		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
+		else self.facingOffset.x = self.facingOffset.x + 3 end
 
-			if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
-			else self.facingOffset.x = self.facingOffset.x + 3 end
+	end
+	if (self.facing == F_UP) then
+		self.facingOffset.y = 0
 
-		end
-		if (self.facing == F_UP) then
-			self.facingOffset.y = 0
-
-			self.facingOffset.x = self.width/2
-			if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
-			else self.facingOffset.x = self.facingOffset.x + 3 end
-		end
+		self.facingOffset.x = self.width/2
+		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-20
+		else self.facingOffset.x = self.facingOffset.x + 3 end
 	end
 
 	self.doubleCount = self.doubleCount-1
@@ -181,29 +177,22 @@ function Player:updateControls()
 				else gustV.x = 5 end
 			end
 			if (self.currentAnim == self.downRunAnim) then gustV.y = 5 end
-			gustV.x = gustV.x + self.v.x
-			gustV.y = gustV.y + self.v.y
+			--gustV.x = gustV.x + self.v.x
+			--gustV.y = gustV.y + self.v.y
 
-			if (self.carrying and not self.carrying:collide("level", self.carrying.x, self.carrying.y)) then
-				self.carrying.v.x = gustV.x
-				self.carrying.v.y = gustV.y
-				if (self.facing == F_LEFT or self.facing == F_RIGHT and self.carrying.v.y > 0) then self.carrying.v.y = 0 end
-				self:drop()
-			elseif self.vacuumIndicator.anim.position == 1 then
-				self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
+			if self.vacuumIndicator.anim.position == 1 then
+				self.scene:add(Gust.new(self.x + self.facingOffset.x, self.y + self.facingOffset.y, gustV))
 				self.dirtCount = 0
 			else
-				local dustball = DustBall.new(self.x + self.width/2, self.y+self.height, self, self.vacuumIndicator.anim.position-1)
-				dustball.y = dustball.y - dustball.height
+				local dustball = DustBall.new(self.x + self.facingOffset.x, self.y+self.facingOffset.y, self)
 				dustball.v.x = gustV.x
 				dustball.v.y = gustV.y
-				dustball.v = normalize(dustball.v, 2)
-				self.dirtCount = 0
+				dustball.v = normalize(dustball.v, 8)
+				self.dirtCount = self.dirtCount-1
 				self.scene:add(dustball)
 			end
-			self.v.x = self.v.x - gustV.x
-			self.v.y = self.v.y - gustV.y
-			self.gustCooldown = 60
+			gustV = normalize(gustV, 5)
+			self.gustCooldown = 7
 		end
 	elseif (self.vacuumState ~= VS_SUCKING) then self.vacuumState = VS_NONE end
 	if (pressing("button2") and self.canSwitchToSuck) then
@@ -251,13 +240,6 @@ function Player:updateAnimation(dt)
 end
 
 function Player:updateCollisions()
-	local carryable = self:collide("carryable", self.x, self.y)
-	if carryable and self.canSuck then
-		if carryable.kind ~= "dirt" then
-			self:pickup(carryable)
-		end
-	end
-
 	if (self:collide("enemy", self.x, self.y)) then
 		self:damage(self:collide("enemy", self.x, self.y), 1)
 	end
@@ -270,57 +252,6 @@ function Player:updateForces()
 		self.friction = self.normalFriction
 	end
 end
-
-function Player:updateCarried()
-	if (self.facing == F_LEFT) then
-		if self:collide("level", self.x+1, y) then
-			self.x = self.x - self.carrying.width
-		end
-		self.facingOffset.x = -self.carrying.width
-		self.facingOffset.y = self.height/2 - self.carrying.height/2
-	end
-	if (self.facing == F_RIGHT) then
-		self.facingOffset.x = self.width
-		self.facingOffset.y = self.height/2 - self.carrying.height/2
-	end
-	if (self.facing == F_DOWN) then
-		self.facingOffset.y = self.height
-
-		self.facingOffset.x = self.width/2 - self.carrying.width/2
-		if self.grounded then
-			self.y = self.y - self.carrying.height
-		end
-
-		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
-		else self.facingOffset.x = self.facingOffset.x + 3 end
-	end
-	if (self.facing == F_UP) then
-		self.facingOffset.y = -self.carrying.height
-
-		self.facingOffset.x = self.width/2 - self.carrying.width/2
-		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
-		else self.facingOffset.x = self.facingOffset.x + 3 end
-	end
-
-	local offset = {x=self.x + self.facingOffset.x+self.v.x, y=self.y + self.facingOffset.y+self.v.y}
-	local actualX, actualY, cols = self.scene.bumpWorld:move(self.carrying, offset.x, offset.y, carryingFilter)
-	self.carrying.x = actualX;
-	self.carrying.y = actualY;
-
-	for _, col in pairs(cols) do
-		if col.other.type == "level" then
-			self.v.x = (self.v.x + (col.normal.x)*math.abs(self.v.x)*self.carrying.bounciness)
-			self.v.y = self.v.y + (col.normal.y)*math.abs(self.v.y)*self.carrying.bounciness
-			self.carrying.v.x = (self.carrying.v.x + (col.normal.x)*math.abs(self.carrying.v.x)*self.carrying.bounciness)
-			self.carrying.v.y = self.carrying.v.y + (col.normal.y)*math.abs(self.carrying.v.y)*self.carrying.bounciness
-		end
-	end
-end
-function Player:pickup(e)
-	self.carrying = e
-	e.beingCarried = true
-	self.gustCooldown = 0
-end
 function Player:drop()
 	self.carrying.beingCarried = false
 	self.carrying:drop()
@@ -330,11 +261,11 @@ end
 
 function Player:flip(reverse)
 	if (reverse) then
-		self.originX = self.width
+		self.originX = self.width-1
 		self.scaleX = -1
 		self.flipped = true
 	else
-		self.originX = 0
+		self.originX = 1
 		self.scaleX = 1
 		self.flipped = false
 	end
