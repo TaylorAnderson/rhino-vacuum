@@ -4,7 +4,8 @@ require("hiteffect")
 require("gust")
 require("dustball")
 require("physicsobject")
-Player = PhysicsObject.new(0, 0, gs, gs)
+require("vacuumindicator")
+Player = PhysicsObject.new(0, 0, gs-2, gs)
 Player.__index = Player
 
 S_INAIR = "inair"
@@ -31,6 +32,7 @@ function Player.new(x, y)
 		right = moveRight,
 		up = jump
 	}
+	self.originX = 1
 	self.vacuumState = VS_NONE
 	self.friction = 0.6
 	self.normalFriction = 0.6
@@ -63,19 +65,25 @@ function Player.new(x, y)
 	self.modeSwitchCooldown = 0
 	self.carrying = nil
 	self.dirtCount = 0
+	self.maxDirtCount = 120
 	self.canSuck = false
 	self.canSwitchToSuck = true
 	self.flickerCounter = 0
 	self.flickerAmt = 5
 	self.damageCounter = 0
 
+	self.facingOffset = {x=0, y=0}
+	self.doubleCount = 0
 	return self
 end
-
+function Player:added()
+	self.vacuumIndicator = VacuumIndicator.new(self)
+	self.scene:add(self.vacuumIndicator)
+end
 function Player:draw()
 
 	self.currentAnim:draw(self.image, self.x, self.y, 0, self.scaleX, self.scaleY, self.originX, self.originY)
-
+	self.vacuumIndicator.anim:gotoFrame(math.floor(self.dirtCount/self.maxDirtCount * 4)+1)
 	if self.vacuumState == VS_SUCKING then
 		local animX = self.x
 		local animY = self.y
@@ -113,11 +121,33 @@ function Player:update(dt)
 	self:updateCollisions()
 	self:updateForces()
 	if self.damageCounter > 0 then self:updateDamageResponse() end
-
-	if self.carrying then
-		self:updateCarried()
-		self:updateCarried()
+	self.facingOffset.x, self.facingOffset.y = 0, 0
+	if (self.facing == F_LEFT) then
+		self.facingOffset.x = 0
+		self.facingOffset.y = self.height/2
 	end
+	if (self.facing == F_RIGHT) then
+		self.facingOffset.x = self.width
+		self.facingOffset.y = self.height/2
+	end
+	if (self.facing == F_DOWN) then
+		self.facingOffset.y = self.height
+
+		self.facingOffset.x = self.width/2
+
+		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-3
+		else self.facingOffset.x = self.facingOffset.x + 3 end
+
+	end
+	if (self.facing == F_UP) then
+		self.facingOffset.y = 0
+
+		self.facingOffset.x = self.width/2
+		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-20
+		else self.facingOffset.x = self.facingOffset.x + 3 end
+	end
+
+	self.doubleCount = self.doubleCount-1
 
 	self.grounded = self:collide("level", self.x, self.y + 1) ~= nil
 
@@ -126,14 +156,9 @@ function Player:update(dt)
 
 	self.gustCooldown = self.gustCooldown - 1
 
-	if (self.dirtCount > 60) then
-		local dustball = DustBall.new(self.x, self.y-10, self)
-		self.scene:add(dustball)
-		self:pickup(dustball)
-		self:updateCarried()
-		self.dirtCount = 0
-	end
+
 	PhysicsObject.update(self, dt)
+
 end
 
 function Player:updateControls()
@@ -152,21 +177,22 @@ function Player:updateControls()
 				else gustV.x = 5 end
 			end
 			if (self.currentAnim == self.downRunAnim) then gustV.y = 5 end
+			--gustV.x = gustV.x + self.v.x
+			--gustV.y = gustV.y + self.v.y
 
-			gustV.x = gustV.x + self.v.x
-			gustV.y = gustV.y + self.v.y
-
-			self.v.x = self.v.x - gustV.x*0.9
-			self.v.y = self.v.y - gustV.y*0.9
-			if (self.carrying) then
-				self.carrying.v.x = gustV.x
-				self.carrying.v.y = gustV.y
-				if (self.facing == F_LEFT or self.facing == F_RIGHT and self.carrying.v.y > 0) then self.carrying.v.y = 0 end
-				self:drop()
+			if self.vacuumIndicator.anim.position == 1 then
+				self.scene:add(Gust.new(self.x + self.facingOffset.x, self.y + self.facingOffset.y, gustV))
+				self.dirtCount = 0
 			else
-				self.scene:add(Gust.new(self.x + self.width/2, self.y + self.height/2, gustV))
+				local dustball = DustBall.new(self.x + self.facingOffset.x, self.y+self.facingOffset.y, self)
+				dustball.v.x = gustV.x
+				dustball.v.y = gustV.y
+				dustball.v = normalize(dustball.v, 8)
+				self.dirtCount = self.dirtCount-1
+				self.scene:add(dustball)
 			end
-			self.gustCooldown = 60
+			gustV = normalize(gustV, 5)
+			self.gustCooldown = 7
 		end
 	elseif (self.vacuumState ~= VS_SUCKING) then self.vacuumState = VS_NONE end
 	if (pressing("button2") and self.canSwitchToSuck) then
@@ -181,15 +207,21 @@ function Player:updateAnimation(dt)
 	self.currentAnim:update(dt)
 	if (self.vacuumState == VS_SUCKING) then self.suckAnim:update(dt) end
 
-	if self.flipped then self.facing = F_LEFT
-	else self.facing = F_RIGHT end
-	if pressing("up") then
-		self.currentAnim = self.upRunAnim
-		self.facing = F_UP
-	elseif pressing("down") then
-		self.currentAnim = self.downRunAnim
-		self.facing = F_DOWN
-	else self.currentAnim = self.sideRunAnim end
+	if not self.animLocked then
+		if self.flipped then self.facing = F_LEFT
+		else self.facing = F_RIGHT end
+		if pressing("up") then
+			--if self.doubleCount > 0 then self.animLocked = true end
+			self.doubleCount = 5
+			self.currentAnim = self.upRunAnim
+			self.facing = F_UP
+		elseif pressing("down") then
+			--if self.doubleCount > 0 then self.animLocked = true end
+			self.doubleCount = 5
+			self.currentAnim = self.downRunAnim
+			self.facing = F_DOWN
+		else self.currentAnim = self.sideRunAnim end
+	end
 	if pressing("left") or pressing("right") then
 		self.currentAnim:resume()
 	else
@@ -208,13 +240,6 @@ function Player:updateAnimation(dt)
 end
 
 function Player:updateCollisions()
-	local carryable = self:collide("carryable", self.x, self.y)
-	if carryable and self.canSuck then
-		if carryable.kind ~= "dirt" then
-			self:pickup(carryable)
-		end
-	end
-
 	if (self:collide("enemy", self.x, self.y)) then
 		self:damage(self:collide("enemy", self.x, self.y), 1)
 	end
@@ -227,37 +252,6 @@ function Player:updateForces()
 		self.friction = self.normalFriction
 	end
 end
-
-function Player:updateCarried()
-	local cOffset = {x=0, y=0}
-	if (self.facing == F_LEFT) then cOffset.x = self.width/2 - self.carrying.width/2 - 12 end
-	if (self.facing == F_RIGHT) then cOffset.x = self.width/2 - self.carrying.width/2 + 12 end
-	if (self.facing == F_DOWN) then
-		cOffset.y = self.height-2
-		if (self.flipped) then cOffset.x = -3
-		else cOffset.x = 3 end
-	end
-	if (self.facing == F_UP) then
-		cOffset.y = -self.height/2-5
-		if (self.flipped) then cOffset.x = -6
-		else cOffset.x = 6 end
-	end
-
-	local actualX, actualY = self.scene.bumpWorld:move(self.carrying, self.x + cOffset.x, self.y + cOffset.y, carryingFilter)
-	self.carrying.x = actualX+self.v.x
-	self.carrying.y = actualY+self.v.y
-	if self.carrying.isSolid and (actualX ~= self.x + cOffset.x or actualY ~= self.y + cOffset.y) then
-		local offset = {x=(self.x + cOffset.x) - (actualX - self.v.x), y=(self.y + cOffset.y) - (actualY - self.v.y)}
-		offset = normalize(offset, magnitude(self.v)*self.carrying.bounciness)
-		self.v.x = self.v.x - offset.x
-		self.v.y = self.v.y - offset.y
-	end
-end
-function Player:pickup(e)
-	self.carrying = e
-	e.beingCarried = true
-	self.gustCooldown = 0
-end
 function Player:drop()
 	self.carrying.beingCarried = false
 	self.carrying:drop()
@@ -267,11 +261,11 @@ end
 
 function Player:flip(reverse)
 	if (reverse) then
-		self.originX = self.width
+		self.originX = self.width-1
 		self.scaleX = -1
 		self.flipped = true
 	else
-		self.originX = 0
+		self.originX = 1
 		self.scaleX = 1
 		self.flipped = false
 	end
