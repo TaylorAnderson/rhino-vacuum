@@ -143,7 +143,8 @@ function Player:update(dt)
 		self.facingOffset.y = 0
 
 		self.facingOffset.x = self.width/2
-		if (self.flipped) then self.facingOffset.x = self.facingOffset.x-20
+		if (self.flipped) then
+			self.facingOffset.x = self.facingOffset.x-6
 		else self.facingOffset.x = self.facingOffset.x + 3 end
 	end
 
@@ -187,12 +188,12 @@ function Player:updateControls()
 				local dustball = DustBall.new(self.x + self.facingOffset.x, self.y+self.facingOffset.y, self)
 				dustball.v.x = gustV.x
 				dustball.v.y = gustV.y
-				dustball.v = normalize(dustball.v, 8)
+				dustball.v = normalize(dustball.v, 3)
 				self.dirtCount = self.dirtCount-1
 				self.scene:add(dustball)
 			end
 			gustV = normalize(gustV, 5)
-			self.gustCooldown = 7
+			self.gustCooldown = 6
 		end
 	elseif (self.vacuumState ~= VS_SUCKING) then self.vacuumState = VS_NONE end
 	if (pressing("button2") and self.canSwitchToSuck) then

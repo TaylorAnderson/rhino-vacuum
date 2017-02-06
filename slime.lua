@@ -21,25 +21,20 @@ function Slime.new(x, y)
 	self.damageCounter = 0
 	self.flickerCounter = 0
 	self.flickerAmt = 5
+	self.oldDir = 0
+
+	self.friction = 0.9
+	self.gravity = 0.5
+	self.health = 5
 	return self
 
 end
 function Slime:update(dt)
+	print(self.damageCounter)
 	Enemy.update(self, dt)
-	if (self.damageCounter > 0) then
-		self.flickerCounter = self.flickerCounter + 1
-		if (self.flickerCounter > self.flickerAmt) then
-			self.visible = true
-			if (self.flickerCounter > self.flickerAmt*2) then
-				self.visible = false
-				self.flickerCounter = 0
-			end
-		end
-		self.damageCounter = self.damageCounter - 1
-	else
-		self.flickerCounter = 0
-		self.visible = true
-	end
+
+	self.damageCounter = self.damageCounter - 1
+
 	local distToAdd = 0
 	if (self.v.x > 0) then distToAdd = distToAdd + self.width end
 
@@ -52,26 +47,35 @@ function Slime:update(dt)
 		self.v.x = self.v.x * -1
 	end
 
-	if (self.v.x > 0.5) then self.v.x = self.v.x * 0.9 end
-	if (math.abs(self.v.x) < 0.5) then self.v.x = self.v.x +0.05 end
+	local ball = self:collide("dustball", self.x, self.y)
+	if ball then
+		self.scene:remove(ball)
+		self:takeDamage(ball, 1)
+
+	end
 	self:updateAnimation(dt)
 
 end
 
 function Slime:draw()
 	Enemy.draw(self)
+	if self.damageCounter > 0 then love.graphics.setColor(255, 100, 100, 255) end
 	self.currentAnim:draw(self.image, self.x, self.y - 6, 0, self.scaleX, self.scaleY, self.originX, self.originY)
-	love.graphics.rectangle("fill", self.x, self.y+self.height+1, 1, 1)
 end
 function Slime:updateAnimation(dt)
 	self.currentAnim:update(dt)
+
 	self:flip(self.v.x<0)
 end
 function Slime:takeDamage(e, amt)
-	self.v.x = self.v.x + e.v.x
-	self.v.y = self.v.y + e.v.y
-
-	self.damageCounter = 120
+	if self.damageCounter > 0 then return end
+	local push = normalize(e.v, 1)
+	self.oldDir = self.v.x
+	--self.v.x = push.x
+	--self.v.y = push.y
+	self.health = self.health - amt
+	if self.health == 0 then self:die() end
+	self.damageCounter = 30
 end
 function Slime:die()
 	self.scene:add(HitFx.new(self.x, self.y))

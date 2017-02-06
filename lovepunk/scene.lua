@@ -87,6 +87,7 @@ function Scene:remove(entity)
 	self.bumpWorld:remove(entity)
 	entity.scene = nil
 	entity:removed()
+	entity = nil
 end
 function Scene:collide(e, type, x, y)
 	local _,_, cols, len = self.bumpWorld:check(e, x, y, checkingFilter)

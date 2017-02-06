@@ -16,7 +16,7 @@ function Entity.new(x, y, width, height)
 	self.scaleY = 1
 	self.collisionMap={}
 	self.visible = true
-	
+
 	return self
 end
 function Entity:added()
@@ -28,7 +28,8 @@ end
 function Entity:keyPressed(k)
 end
 function Entity:collide(type, x, y)
-	return scene:collide(self, type, x, y)
+	if not self.scene then return false end
+	return scene:collide(self, type,x, y)
 end
 function Entity:mousepressed(x, y, button)
 end
