@@ -23,6 +23,8 @@ function Dirt.new(x, y, player, dir)
 	self.friction = 0.99
 	self.lodgeTimer = 0
 
+	self.canBeSucked = true
+
 	return self
 end
 function Dirt:update()

@@ -5,6 +5,7 @@ require("gust")
 require("dustball")
 require("physicsobject")
 require("vacuumindicator")
+require("slimecube")
 Player = PhysicsObject.new(0, 0, gs-2, gs)
 Player.__index = Player
 
@@ -20,6 +21,8 @@ F_LEFT = "left"
 F_RIGHT = "right"
 F_DOWN = "down"
 F_UP = "up"
+
+SUCKTYPE_SLIME = "slime"
 
 function Player.new(x, y)
 	local self = setmetatable({}, Player)
@@ -74,12 +77,16 @@ function Player.new(x, y)
 
 	self.facingOffset = {x=0, y=0}
 	self.doubleCount = 0
+
+	self.specialCarry = ""
 	return self
 end
+
 function Player:added()
 	self.vacuumIndicator = VacuumIndicator.new(self)
 	self.scene:add(self.vacuumIndicator)
 end
+
 function Player:draw()
 
 	self.currentAnim:draw(self.image, self.x, self.y, 0, self.scaleX, self.scaleY, self.originX, self.originY)
@@ -159,7 +166,6 @@ function Player:update(dt)
 
 
 	PhysicsObject.update(self, dt)
-
 end
 
 function Player:updateControls()
@@ -181,27 +187,42 @@ function Player:updateControls()
 			--gustV.x = gustV.x + self.v.x
 			--gustV.y = gustV.y + self.v.y
 
-			if self.vacuumIndicator.anim.position == 1 then
+			if self.vacuumIndicator.anim.position == 1 and self.specialCarry == "" then
 				self.scene:add(Gust.new(self.x + self.facingOffset.x, self.y + self.facingOffset.y, gustV))
 				self.dirtCount = 0
 			else
-				local dustball = DustBall.new(self.x + self.facingOffset.x, self.y+self.facingOffset.y, self)
-				dustball.v.x = gustV.x
-				dustball.v.y = gustV.y
-				dustball.v = normalize(dustball.v, 3)
-				self.dirtCount = self.dirtCount-1
-				self.scene:add(dustball)
+				if self.specialCarry == "" then
+					local dustball = DustBall.new(self.x + self.facingOffset.x, self.y+self.facingOffset.y, self)
+					dustball.v.x = gustV.x
+					dustball.v.y = gustV.y
+					dustball.v = normalize(dustball.v, 3)
+					self.dirtCount = self.dirtCount-3
+
+					if self.dirtCount < 0 then self.dirtCount = 0 end
+
+					self.scene:add(dustball)
+				elseif self.specialCarry == SUCKTYPE_SLIME then
+					local slimeblock = SlimeCube.new(self.x + self.facingOffset.x, self.y+self.facingOffset.y)
+					slimeblock.v.x = gustV.x
+					slimeblock.v.y = gustV.y-5
+					slimeblock.v = normalize(slimeblock.v, 5)
+					self.scene:add(slimeblock)
+					self.specialCarry = ""
+				end
 			end
 			gustV = normalize(gustV, 5)
 			self.gustCooldown = 6
 		end
-	elseif (self.vacuumState ~= VS_SUCKING) then self.vacuumState = VS_NONE end
+	elseif self.vacuumState ~= VS_SUCKING then
+		self.vacuumState = VS_NONE
+	end
+
 	if (pressing("button2") and self.canSwitchToSuck) then
 		if (self.vacuumState == VS_SUCKING) then self.vacuumState = VS_NONE
 		else self.vacuumState = VS_SUCKING end
 		self.canSwitchToSuck = false
 	end
-	if (not pressing("button2")) then self.canSwitchToSuck = true end
+	if not pressing("button2") then self.canSwitchToSuck = true end
 end
 
 function Player:updateAnimation(dt)
@@ -237,13 +258,9 @@ function Player:updateAnimation(dt)
 	if pressing("left") then
 		self:flip(true)
 	end
-
 end
 
 function Player:updateCollisions()
-	if (self:collide("enemy", self.x, self.y)) then
-		self:damage(self:collide("enemy", self.x, self.y), 1)
-	end
 end
 
 function Player:updateForces()
@@ -253,11 +270,11 @@ function Player:updateForces()
 		self.friction = self.normalFriction
 	end
 end
+
 function Player:drop()
 	self.carrying.beingCarried = false
 	self.carrying:drop()
 	self.carrying = nil
-
 end
 
 function Player:flip(reverse)
@@ -272,7 +289,7 @@ function Player:flip(reverse)
 	end
 end
 
-function Player:damage(e, dmg)
+function Player:takeDamage(e, dmg)
 	if (self.damageCounter > 0) then return end
 	local knockback = {x=0, y=0}
 	knockback = findVector({x=self.x, y=self.y}, {x=e.x, y=e.y}, 7, true)
@@ -299,7 +316,7 @@ function Player:updateDamageResponse()
 		self.visible = true
 	end
 end
-function carryingFilter(item, other)
-	if (other.type == "level") then return "slide"
-	else return "cross" end
+
+function Player:suck(enemy)
+	self.specialCarry = enemy.suckType
 end
