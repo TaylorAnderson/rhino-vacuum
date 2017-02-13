@@ -17,7 +17,7 @@ function Enemy.new(x, y, w, h, player)
 	self.v = {x=0, y=0}
 	self.grounded = false
 	self.type = "enemy"
-	self.suckRange = 30
+	self.suckRange = 50
 	self.isSuckable = false
 	self.pullLock = false
 	self.damage = 1
@@ -40,7 +40,7 @@ function Enemy:update(dt)
 				(facing == F_UP and self.y < self.player.y) or
 				(facing == F_LEFT and self.x < self.player.x) or
 				(facing == F_RIGHT and self.x > self.player.x)) then
-				self.v = findVector({x=self.x, y=self.y}, {x=self.player.x+self.player.facingOffset.x, y=self.player.y + self.player.facingOffset.y}, 3)
+				self.v = findVector({x=self.x, y=self.y}, {x=self.player.x, y=self.player.y}, 3)
 				self.beingPulled = true
 			end
 		end
@@ -75,10 +75,8 @@ function Enemy:die()
 end
 function Enemy:flip(reverse)
 	if (reverse) then
-		self.originX = self.width + 4
 		self.scaleX = -1
 	else
-		self.originX = 4
 		self.scaleX = 1
 	end
 end

@@ -127,6 +127,7 @@ function Player:update(dt)
 	self:updateAnimation(dt)
 	self:updateCollisions()
 	self:updateForces()
+	print(self.dirtCount)
 	if self.damageCounter > 0 then self:updateDamageResponse() end
 	self.facingOffset.x, self.facingOffset.y = 0, 0
 	if (self.facing == F_LEFT) then
@@ -186,8 +187,7 @@ function Player:updateControls()
 			if (self.currentAnim == self.downRunAnim) then gustV.y = 5 end
 			--gustV.x = gustV.x + self.v.x
 			--gustV.y = gustV.y + self.v.y
-
-			if self.vacuumIndicator.anim.position == 1 and self.specialCarry == "" then
+			if self.dirtCount <= 0 and self.specialCarry == "" then
 				self.scene:add(Gust.new(self.x + self.facingOffset.x, self.y + self.facingOffset.y, gustV))
 				self.dirtCount = 0
 			else
@@ -202,9 +202,9 @@ function Player:updateControls()
 
 					self.scene:add(dustball)
 				elseif self.specialCarry == SUCKTYPE_SLIME then
-					local slimeblock = SlimeCube.new(self.x + self.facingOffset.x, self.y+self.facingOffset.y)
+					local slimeblock = SlimeCube.new(self.x, self.y)
 					slimeblock.v.x = gustV.x
-					slimeblock.v.y = gustV.y-5
+					slimeblock.v.y = gustV.y
 					slimeblock.v = normalize(slimeblock.v, 5)
 					self.scene:add(slimeblock)
 					self.specialCarry = ""
@@ -294,8 +294,8 @@ function Player:takeDamage(e, dmg)
 	local knockback = {x=0, y=0}
 	knockback = findVector({x=self.x, y=self.y}, {x=e.x, y=e.y}, 7, true)
 	if (knockback.y > 0) then knockback.y = 0 end
-	self.v.x = self.v.x + knockback.x*2
-	self.v.y = self.v.y + knockback.y
+	self.v.x = knockback.x*2
+	self.v.y = knockback.y
 	self.damageCounter = 120
 	self.controlLock = 60
 end

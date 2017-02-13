@@ -10,6 +10,7 @@ function PhysicsObject.new(x, y, w, h)
 	self.height = h
 	self.v = {x=0, y=0}
 	self.filters = {["level"]="slide"}
+	self.collideTypes = {"level"}
 	self.bounciness=1.1
 	return self
 end
@@ -18,9 +19,11 @@ end
 function PhysicsObject:update(dt)
 	local actualX,actualY,cols = self.scene.bumpWorld:move(self, self.x+self.v.x, self.y+self.v.y, getFilter)
 	for _, col in pairs(cols) do
-		if col.other.type == "level" and self.filters.level == "slide" then
-			self.v.x = self.v.x + (col.normal.x)*math.abs(self.v.x)*self.bounciness
-			self.v.y = self.v.y + (col.normal.y)*math.abs(self.v.y)*self.bounciness
+		for _, type in pairs(self.collideTypes) do
+			if col.other.type == type then
+				self.v.x = self.v.x + (col.normal.x)*math.abs(self.v.x)*self.bounciness
+				self.v.y = self.v.y + (col.normal.y)*math.abs(self.v.y)*self.bounciness
+			end
 		end
 	end
 	self.x = actualX

@@ -7,7 +7,7 @@ DustBall.__index = DustBall
 function DustBall.new(x, y, player)
 	local self = setmetatable({}, DustBall)
 	self.x = x-self.width/2
-	self.y = y - self.height/2
+	self.y = y
 	self.collisionLock = false
 	self.player = player
 	self.v = {x=0, y=0}

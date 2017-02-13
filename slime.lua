@@ -20,17 +20,16 @@ function Slime.new(x, y, player)
 	self.x = x
 	self.y = y
 	self.player = player
-	self.originX = -16
 	self.v = {x=0.5, y=0}
 	local rand = randomRange(1, 2)
 
 	self.type = "enemy"
-	self.image = love.graphics.newImage("assets/img/enemy.png")
+	self.image = love.graphics.newImage("assets/img/slime.png")
 
 	local anim8 = require "libs.anim8"
 	local grid = anim8.newGrid(24, 24, self.image:getWidth(), self.image:getHeight())
-	self.anim = anim8.newAnimation(grid('1-2', 1, '1-2', 2), 0.1)
-	self.stunAnim = anim8.newAnimation(grid(3, 1), 0.1)
+	self.anim = anim8.newAnimation(grid('1-4', 1), 0.1)
+	self.stunAnim = anim8.newAnimation(grid(5, 1), 0.1)
 	self.currentAnim = self.anim
 	self.damageCounter = 0
 	self.flickerCounter = 0
@@ -43,6 +42,7 @@ function Slime.new(x, y, player)
 	self.stunned = false
 	self.canBeSucked = false
 	self.suckType = SUCKTYPE_SLIME
+	self.originY = 6
 	return self
 
 end
@@ -80,7 +80,7 @@ function Slime:draw()
 		shader:send("WhiteFactor", 0.5)
 	end
 	Enemy.draw(self)
-	self.currentAnim:draw(self.image, self.x, self.y - 6, 0, self.scaleX, self.scaleY, self.originX, self.originY)
+	self.currentAnim:draw(self.image, self.x, self.y, 0, self.scaleX, self.scaleY, self.originX, self.originY)
 	love.graphics.setShader()
 end
 function Slime:updateAnimation(dt)
@@ -111,4 +111,12 @@ function Slime:stun()
 	self.v.x = 0
 	self.v.y = 0
 	self.isSuckable = true
+end
+function Slime:flip(reverse)
+	if (reverse) then
+		self.originX = self.width+4
+	else
+		self.originX = 4
+	end
+	Enemy.flip(self, reverse)
 end

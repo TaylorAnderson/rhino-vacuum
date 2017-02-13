@@ -5,6 +5,7 @@ require("enemy")
 require("platform")
 require("helpfuldog")
 require("slime")
+require("lilslime")
 require ("bouncyball")
 require("dirttile")
 require("dirt")
@@ -101,6 +102,7 @@ function GameScene:loadLevel(path, x, y)
 			if (i == "slime") then
 				self:add(Slime.new(ex+x, ey, self.player))
 			end
+			if i == "lilslime" then self:add(LilSlime.new(ex+x, ey, self.player)) end
 		end
 	end
 
